@@ -62,32 +62,21 @@ class LocalGAN():
 		# The combined model  (stacked detector and discriminator)
 		# Trains the detector to destroy the discriminator
 		self.combined = Model(img, prob)
-		self.combined.compile(loss=neg_sparse_categorical_crossentropy, optimizer=Adam(0.0001), metrics=['accuracy'])
+		self.combined.compile(loss=neg_sparse_categorical_crossentropy, optimizer=Adam(0.001), metrics=['accuracy'])
 		# self.combined.compile(loss=entropy_loss, optimizer=Adam(0.0001), metrics=['accuracy'])
 
 	def build_detector(self):
 
 		model = Sequential()
 
-		# model.add(Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=self.img_shape))
-		# model.add(Conv2D(64, (3, 3), activation='relu'))
-		# model.add(Flatten())
-		# model.add(Dense(np.prod(self.img_shape), activation='relu', kernel_initializer='he_uniform'))
-		# model.add(Reshape(self.img_shape))
-		# model.add(Conv2DTranspose(1, (3, 3), padding='same', activation='relu'))
-		# model.add(Conv2DTranspose(1, (3, 3), padding='same', activation='sigmoid', activity_regularizer=tf.keras.regularizers.L1(self.lam)))
-		# model.add(MaxPooling2D((2, 2)))
-		# model.add(Flatten())
-		# model.add(Dense(512, activation='relu', kernel_initializer='he_uniform'))
-
 		model.add(Flatten(input_shape=self.img_shape))
-		model.add(Dense(1024, activation='relu'))
+		model.add(Dense(256, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
 		# model.add(LeakyReLU(alpha=0.2))
 		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(1024, activation='relu'))
+		model.add(Dense(256, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
 		# model.add(LeakyReLU(alpha=0.2))
 		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(2024, activation='relu'))
+		model.add(Dense(1024, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
 		# model.add(LeakyReLU(alpha=0.2))
 		# model.add(BatchNormalization(momentum=0.8))
 		if self.method == 'mask':
@@ -95,8 +84,8 @@ class LocalGAN():
 				# activation = tf.keras.activations.relu(max_value=1),
 				activation ='sigmoid',
 				activity_regularizer=tf.keras.regularizers.L1(self.lam),
-				kernel_initializer='he_uniform',
-				bias_initializer='he_uniform'))
+				kernel_initializer='zeros',
+				bias_initializer='zeros'))
 			# model.add(ReLU(max_value=1))
 		else:
 			model.add(Dense(np.prod(self.img_shape), activation ='tanh', kernel_initializer='zeros',
