@@ -2,12 +2,15 @@ from __future__ import print_function, division
 import tensorflow as tf
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D, ReLU
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
+from keras.layers.advanced_activations import LeakyReLU, ReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
 from tensorflow.keras import regularizers
+from tensorflow.keras import activations
+from keras import initializers
+import tensorflow_probability as tfp
 
 import matplotlib.pyplot as plt
 import sys
@@ -62,38 +65,78 @@ class LocalGAN():
 		# The combined model  (stacked detector and discriminator)
 		# Trains the detector to destroy the discriminator
 		self.combined = Model(img, prob)
-		self.combined.compile(loss=neg_sparse_categorical_crossentropy, optimizer=Adam(0.001), metrics=['accuracy'])
+		self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
+			optimizer=Adam(0.0001),
+			metrics=['accuracy'])
 		# self.combined.compile(loss=entropy_loss, optimizer=Adam(0.0001), metrics=['accuracy'])
 
 	def build_detector(self):
+		# model = Sequential()
+		# model.add(Conv2D(32, (2,2), 
+		# 			padding="same",
+		# 			input_shape=self.img_shape,
+		# 			kernel_initializer=initializers.glorot_uniform(seed=0), 
+		# 			bias_initializer=initializers.glorot_uniform(seed=0)))
+		# model.add(Flatten())
+		# model.add(Dense(256, 
+		# 		activation ='relu',
+		# 		kernel_initializer=initializers.glorot_uniform(seed=0), 
+		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
+		# model.add(Dense(np.prod(self.img_shape), 
+		# 		activation ='relu', 
+		# 		kernel_initializer=initializers.glorot_uniform(seed=0),
+		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
+		# model.add(Reshape(self.img_shape))
+		# model.add(BatchNormalization(momentum=0.8))
+		# model.add(Conv2D(1, kernel_size=(2,2), padding="same", 
+		# 		activation ='sigmoid',
+		# 		activity_regularizer=tf.keras.regularizers.L1(self.lam),
+		# 		kernel_initializer=initializers.glorot_uniform(seed=0),
+		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
+
 
 		model = Sequential()
-
-		model.add(Flatten(input_shape=self.img_shape))
-		model.add(Dense(256, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
+		model.add(Conv2D(32, (2,2), 
+			padding="same",
+			input_shape=self.img_shape,
+			kernel_initializer=initializers.glorot_uniform(seed=0), 
+			bias_initializer=initializers.glorot_uniform(seed=0)))
+		model.add(Flatten())
+		model.add(Dense(32, activation='relu', 
+			kernel_initializer=initializers.glorot_uniform(seed=0), 
+			bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(LeakyReLU(alpha=0.2))
+		model.add(BatchNormalization(momentum=0.8))
+		# model.add(Dense(32, activation='relu', 
+		# 	kernel_initializer=initializers.glorot_uniform(seed=0), 
+		# 	bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(256, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
+		model.add(Dense(32, activation='relu', 
+			kernel_initializer=initializers.glorot_uniform(seed=0), 
+			bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(LeakyReLU(alpha=0.2))
-		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(1024, activation='relu', kernel_initializer='zeros', bias_initializer='zeros'))
-		# model.add(LeakyReLU(alpha=0.2))
-		# model.add(BatchNormalization(momentum=0.8))
+		model.add(BatchNormalization(momentum=0.8))
+		# https://medium.com/apache-mxnet/transposed-convolutions-explained-with-ms-excel-52d13030c7e8
 		if self.method == 'mask':
 			model.add(Dense(np.prod(self.img_shape), 
 				# activation = tf.keras.activations.relu(max_value=1),
 				activation ='sigmoid',
+				# activation ='softmax',
 				activity_regularizer=tf.keras.regularizers.L1(self.lam),
-				kernel_initializer='zeros',
-				bias_initializer='zeros'))
+				# activity_regularizer=entropy_reg(self.lam),
+				kernel_initializer=initializers.glorot_uniform(seed=0),
+				bias_initializer=initializers.glorot_uniform(seed=0)))
 			# model.add(ReLU(max_value=1))
 		else:
-			model.add(Dense(np.prod(self.img_shape), activation ='tanh', kernel_initializer='zeros',
-				bias_initializer='zeros', activity_regularizer=tf.keras.regularizers.L1(self.lam)))
+			model.add(Dense(np.prod(self.img_shape), 
+					activation ='softmax',
+					kernel_initializer='zeros',
+					activity_regularizer=tf.keras.regularizers.L1(self.lam),
+					# activity_regularizer = entropy_reg(self.lam),
+					bias_initializer='zeros'))
 
+		# model.add(ReLU(threshold=.1))
 		model.add(Reshape(self.img_shape))
-
-		# model.summary()
 
 		img = Input(shape=self.img_shape)
 		noise = model(img)
@@ -105,6 +148,7 @@ class LocalGAN():
 		else:
 			img_noise = Add()([img, noise])
 		# img = model(noise)
+		# model.summary()
 
 		return Model(img, img_noise)
 
@@ -112,12 +156,18 @@ class LocalGAN():
 
 		model = Sequential()
 
-		model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', input_shape=self.img_shape))
+		model.add(Conv2D(32, (3, 3),
+				activation='relu', 
+				kernel_initializer=initializers.glorot_uniform(seed=0),
+				bias_initializer=initializers.glorot_uniform(seed=0),
+				input_shape=self.img_shape))
 		model.add(MaxPooling2D((2, 2)))
 		model.add(Flatten())
-		model.add(Dense(100, activation='relu', kernel_initializer='he_uniform'))
-		model.add(Dense(self.labels, activation='softmax'))
-		model.summary()
+		model.add(Dense(100, activation='relu', kernel_initializer=initializers.glorot_uniform(seed=0)))
+		model.add(Dense(self.labels, activation='softmax', 
+			kernel_initializer=initializers.glorot_uniform(seed=0), 
+			bias_initializer=initializers.glorot_uniform(seed=0)))
+		# model.summary()
 
 		img = Input(shape=self.img_shape)
 		prob = model(img)
