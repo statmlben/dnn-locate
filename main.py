@@ -11,12 +11,15 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 from dnn_locate import LocalGAN
+from keras.preprocessing.image import ImageDataGenerator
 
 input_shape, labels = (28, 28, 1), 10
 
 method = 'mask'
 ## load data
 (X_train, y_train), (_, _) = mnist.load_data()
+# datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
+X_train = X_train + 
 
 if method == 'mask':
 	X_train = X_train / 255.
