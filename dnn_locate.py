@@ -66,7 +66,7 @@ class LocalGAN():
 		# Trains the detector to destroy the discriminator
 		self.combined = Model(img, prob)
 		self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
-			optimizer=Adam(0.0001),
+			optimizer=Adam(0.00001),
 			metrics=['accuracy'])
 		# self.combined.compile(loss=entropy_loss, optimizer=Adam(0.0001), metrics=['accuracy'])
 
@@ -96,26 +96,24 @@ class LocalGAN():
 
 
 		model = Sequential()
-		model.add(Conv2D(32, (2,2), 
+		model.add(Conv2D(16, (2,2), 
 			padding="same",
 			input_shape=self.img_shape,
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
 		model.add(Flatten())
-		model.add(Dense(32, activation='relu', 
+		model.add(Dense(64, activation='relu', 
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(LeakyReLU(alpha=0.2))
-		model.add(BatchNormalization(momentum=0.8))
+		# model.add(BatchNormalization(momentum=0.8))
 		# model.add(Dense(32, activation='relu', 
 		# 	kernel_initializer=initializers.glorot_uniform(seed=0), 
 		# 	bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(32, activation='relu', 
+		model.add(Dense(64, activation='relu', 
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(LeakyReLU(alpha=0.2))
-		model.add(BatchNormalization(momentum=0.8))
+		# model.add(BatchNormalization(momentum=0.8))
 		# https://medium.com/apache-mxnet/transposed-convolutions-explained-with-ms-excel-52d13030c7e8
 		if self.method == 'mask':
 			model.add(Dense(np.prod(self.img_shape), 
@@ -129,11 +127,11 @@ class LocalGAN():
 			# model.add(ReLU(max_value=1))
 		else:
 			model.add(Dense(np.prod(self.img_shape), 
-					activation ='softmax',
-					kernel_initializer='zeros',
+					activation ='tanh',
+					kernel_initializer=initializers.glorot_uniform(seed=0),
 					activity_regularizer=tf.keras.regularizers.L1(self.lam),
 					# activity_regularizer = entropy_reg(self.lam),
-					bias_initializer='zeros'))
+					bias_initializer=initializers.glorot_uniform(seed=0)))
 
 		# model.add(ReLU(threshold=.1))
 		model.add(Reshape(self.img_shape))
@@ -160,12 +158,19 @@ class LocalGAN():
 				activation='relu', 
 				kernel_initializer=initializers.glorot_uniform(seed=0),
 				bias_initializer=initializers.glorot_uniform(seed=0),
+				kernel_regularizer=tf.keras.regularizers.L1(0.001),
+				bias_regularizer=tf.keras.regularizers.L1(0.001),
 				input_shape=self.img_shape))
 		model.add(MaxPooling2D((2, 2)))
 		model.add(Flatten())
-		model.add(Dense(100, activation='relu', kernel_initializer=initializers.glorot_uniform(seed=0)))
+		model.add(Dense(100, activation='relu',
+			kernel_regularizer=tf.keras.regularizers.L1(0.001),
+			bias_regularizer=tf.keras.regularizers.L1(0.001),
+			kernel_initializer=initializers.glorot_uniform(seed=0)))
 		model.add(Dense(self.labels, activation='softmax', 
-			kernel_initializer=initializers.glorot_uniform(seed=0), 
+			kernel_initializer=initializers.glorot_uniform(seed=0),
+			kernel_regularizer=tf.keras.regularizers.L1(0.001),
+			bias_regularizer=tf.keras.regularizers.L1(0.001),
 			bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.summary()
 

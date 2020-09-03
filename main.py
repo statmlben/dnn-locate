@@ -12,25 +12,30 @@ import sys
 import numpy as np
 from dnn_locate import LocalGAN
 from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.layers import GaussianNoise
 
 input_shape, labels = (28, 28, 1), 10
+sample = GaussianNoise(0.2)
 
-method = 'mask'
+method = 'noise'
 ## load data
 (X_train, y_train), (_, _) = mnist.load_data()
 # datagen = ImageDataGenerator(featurewise_center=True, featurewise_std_normalization=True)
-X_train = X_train + 
+X_train = X_train / 255.
+# if method == 'mask':
+# 	X_train = X_train / 255.
+# else:
+# 	X_train = X_train / 127.5 - 1.
 
-if method == 'mask':
-	X_train = X_train / 255.
-else:
-	X_train = X_train / 127.5 - 1.
+# X_train = sample(X_train, training=True).numpy()
+# plt.imshow(X_train[0,:,:])
+# plt.show()
 
 ind_set = np.array([i for i in range(len(y_train)) if y_train[i] in [7, 9]])
 X_train, y_train = X_train[ind_set], y_train[ind_set]
 X_train = np.expand_dims(X_train, axis=3)
 
-elk = LocalGAN(img_shape=input_shape, labels=labels, lam=.14, method=method)
+elk = LocalGAN(img_shape=input_shape, labels=labels, lam=.014, method=method)
 es_detect = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, verbose=1, patience=3, restore_best_weights=True)
 es_learn = EarlyStopping(monitor='val_accuracy', mode='max', verbose=1, patience=5, restore_best_weights=True)
 
@@ -38,10 +43,11 @@ print('###'*20)
 print('###'*5+' '*6+'Train for learner'+' '*5+'###'*5)
 print('###'*20)
 
-# learn_tmp = elk.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=10, batch_size=128, validation_split=.2)
+# learn_tmp = elk.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
 # elk.discriminator.save_weights("model_01.h5")
 # elk.discriminator.load_weights("model_test.h5")
-elk.discriminator.load_weights("model_01.h5")
+# elk.discriminator.load_weights("model_01.h5")
+elk.discriminator.load_weights("model_noise.h5")
 
 print('###'*20)
 print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)
@@ -132,4 +138,4 @@ else:
 
 	## print total sum
 	## compute the total mount of the proporion\n",
-	print(np.sum(X_train[0,:,:,0] - X_noise[0,:,:,0]))
+	print(np.sum(np.abs(X_train[0,:,:,0] - X_noise[0,:,:,0])))
