@@ -6,7 +6,7 @@ from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooli
 from keras.layers.advanced_activations import LeakyReLU, ReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from tensorflow.keras import regularizers
 from tensorflow.keras import activations
 from keras import initializers
@@ -15,6 +15,11 @@ import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 import sys
 import numpy as np
+
+from keras_gradient_noise import add_gradient_noise
+from SGLD import SGLD
+
+lr, inv_temp = 0.0005, 1.
 
 def neg_sparse_categorical_crossentropy(y_true, y_pred):
 	return -tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
@@ -66,7 +71,7 @@ class LocalGAN():
 		# Trains the detector to destroy the discriminator
 		self.combined = Model(img, prob)
 		self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
-			optimizer=Adam(0.00001),
+			optimizer=SGLD(lr=lr, inv_temp=1.),
 			metrics=['accuracy'])
 		# self.combined.compile(loss=entropy_loss, optimizer=Adam(0.0001), metrics=['accuracy'])
 
@@ -102,7 +107,7 @@ class LocalGAN():
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
 		model.add(Flatten())
-		model.add(Dense(64, activation='relu', 
+		model.add(Dense(16, activation='relu', 
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(BatchNormalization(momentum=0.8))
@@ -110,7 +115,7 @@ class LocalGAN():
 		# 	kernel_initializer=initializers.glorot_uniform(seed=0), 
 		# 	bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(64, activation='relu', 
+		model.add(Dense(16, activation='relu', 
 			kernel_initializer=initializers.glorot_uniform(seed=0), 
 			bias_initializer=initializers.glorot_uniform(seed=0)))
 		# model.add(BatchNormalization(momentum=0.8))
