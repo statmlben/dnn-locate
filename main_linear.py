@@ -1,63 +1,57 @@
-from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping
-from models.cnn_models import build_detector, build_discriminator
-
-import matplotlib.pyplot as plt
-import sys
 import numpy as np
+from sklearn import datasets
+import matplotlib.pyplot as plt
 from dnn_locate import LocalGAN
-from keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.layers import GaussianNoise
+from models.linear_models import build_detector, build_discriminator
+from keras.callbacks import EarlyStopping
+from keras.optimizers import Adam, SGD
 
-input_shape, labels = (28, 28, 1), 10
-sample = GaussianNoise(0.2)
+# plot for 1d case
+# https://scikit-learn.org/stable/auto_examples/linear_model/plot_ransac.html#sphx-glr-auto-examples-linear-model-plot-ransac-py
 
-method = 'mask'
-## load data
-(X_train, y_train), (X_test, y_test) = mnist.load_data()
-X_train = X_train / 255.
-X_test = X_test / 255.
+n_samples, input_shape, labels = 1000, 1, 1
 
-ind_set = np.array([i for i in range(len(y_train)) if y_train[i] in [7, 9]])
-ind_set_test = np.array([i for i in range(len(y_test)) if y_test[i] in [7, 9]])
-
-X_train, y_train = X_train[ind_set], y_train[ind_set]
-X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
-
-X_train = np.expand_dims(X_train, axis=3)
-X_test = np.expand_dims(X_test, axis=3)
+X_train, y_train, coef = datasets.make_regression(n_samples=n_samples, n_features=input_shape,
+                                      				n_informative=int(input_shape/10)+1, noise=10.,
+                                      				coef=True, random_state=1)
 
 ## define models 
-detector = build_detector(img_shape=input_shape, lam=0.1, type_='mask')
-discriminator = build_discriminator(img_shape=input_shape, labels=labels)
-discriminator.load_weights("model_noise.h5")
+detector = build_detector(input_dim=input_shape, lam=0.1, type_='noise')
+discriminator = build_discriminator(input_dim=input_shape, labels=labels, lam=0.0)
+discriminator.compile(loss='MSE', optimizer=Adam(lr=0.01))
+# discriminator.load_weights("model_noise.h5")
 
 ## define framework
 elk = LocalGAN(input_shape=input_shape, labels=labels, discriminator=discriminator, detector=detector)
 es_detect = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, verbose=1, patience=3, restore_best_weights=True)
-es_learn = EarlyStopping(monitor='val_accuracy', mode='max', verbose=1, patience=5, restore_best_weights=True)
+es_learn = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=100, restore_best_weights=True)
 
 print('###'*20)
 print('###'*5+' '*6+'Train for learner'+' '*5+'###'*5)
 print('###'*20)
 
-# learn_tmp = elk.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
+learn_tmp = elk.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=1000, batch_size=128, validation_split=.2)
 # elk.discriminator.save_weights("model_01.h5")
 # elk.discriminator.load_weights("model_test.h5")
 # elk.discriminator.load_weights("model_01.h5")
 # elk.discriminator.load_weights("model_noise.h5")
-train_loss_base, train_acc_base = elk.discriminator.evaluate(X_train, y_train)
-test_loss_base, test_acc_base = elk.discriminator.evaluate(X_test, y_test)
+train_loss_base = elk.discriminator.evaluate(X_train, y_train)
+# test_loss_base = elk.discriminator.evaluate(X_test, y_test)
+
+# lw = 2
+y_pred = elk.discriminator.predict(X_train)
+plt.scatter(X_train, y_pred, color='yellowgreen', marker='.')
+plt.scatter(X_train, y_train, color='red', marker='.')
+# plt.plot(line_X, line_y, color='navy', linewidth=lw, label='Linear regressor')
+# plt.legend(loc='lower right')
+# plt.xlabel("Input")
+# plt.ylabel("Response")
+plt.show()
 
 print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss_base))
-print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
+# print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
 
+## mark here Sep 9th
 
 print('###'*20)
 print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)

@@ -10,7 +10,6 @@ from keras.optimizers import Adam, SGD
 from tensorflow.keras import regularizers
 from tensorflow.keras import activations
 from keras import initializers
-import tensorflow_probability as tfp
 
 import matplotlib.pyplot as plt
 import sys
@@ -23,6 +22,9 @@ lr, inv_temp = 0.0005, 1.
 
 def neg_sparse_categorical_crossentropy(y_true, y_pred):
 	return -tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
+
+def neg_MSE(y_true, y_pred):
+	return -tf.keras.losses.MSE(y_true, y_pred)
 
 def entropy_loss(y_true, y_pred):
 	return tf.keras.losses.categorical_crossentropy(y_pred, y_pred)
@@ -41,24 +43,20 @@ class entropy_reg(regularizers.Regularizer):
 		# return self.strength*tf.keras.losses.categorical_crossentropy(prob, prob)
 
 class LocalGAN():
-	def __init__(self, img_shape, labels, lam=0.01, method='mask', optimizer=Adam(0.0005)):
-		self.img_rows = img_shape[0]
-		self.img_cols = img_shape[1]
-		self.channels = img_shape[2]
+	def __init__(self, input_shape, labels, discriminator, detector, optimizer=SGD(lr=0.0005), task='classification'):
 		self.labels = labels
-		self.img_shape = img_shape
-		self.lam=lam
+		self.input_shape = input_shape
 		self.optimizer = optimizer
-		self.method=method
-
-		self.discriminator = self.build_discriminator()
-		self.discriminator.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+		self.task = task
+		# self.discriminator = self.build_discriminator()
+		self.discriminator = discriminator
 
 		# Build the detector
-		self.detector = self.build_detector()
+		# self.detector = self.build_detector()
+		self.detector = detector
 
 		# The decetor generate noise based on input imgs
-		img = Input(shape=self.img_shape)
+		img = Input(shape=self.input_shape)
 		img_noise = self.detector(img)
 
 		# For the combined model we will only train the generator
@@ -70,119 +68,17 @@ class LocalGAN():
 		# The combined model  (stacked detector and discriminator)
 		# Trains the detector to destroy the discriminator
 		self.combined = Model(img, prob)
-		self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
-			optimizer=SGLD(lr=lr, inv_temp=1.),
-			metrics=['accuracy'])
+		if self.task == 'classification':
+			self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
+				optimizer=optimizer,
+				metrics=['accuracy'])
+		elif self.task == 'regression':
+			self.combined.compile(loss=neg_MSE, 
+				optimizer=optimizer)
+		else:
+			print('the formulation only work for regression and classification.')
 		# self.combined.compile(loss=entropy_loss, optimizer=Adam(0.0001), metrics=['accuracy'])
 
-	def build_detector(self):
-		# model = Sequential()
-		# model.add(Conv2D(32, (2,2), 
-		# 			padding="same",
-		# 			input_shape=self.img_shape,
-		# 			kernel_initializer=initializers.glorot_uniform(seed=0), 
-		# 			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(Flatten())
-		# model.add(Dense(256, 
-		# 		activation ='relu',
-		# 		kernel_initializer=initializers.glorot_uniform(seed=0), 
-		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(Dense(np.prod(self.img_shape), 
-		# 		activation ='relu', 
-		# 		kernel_initializer=initializers.glorot_uniform(seed=0),
-		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(Reshape(self.img_shape))
-		# model.add(BatchNormalization(momentum=0.8))
-		# model.add(Conv2D(1, kernel_size=(2,2), padding="same", 
-		# 		activation ='sigmoid',
-		# 		activity_regularizer=tf.keras.regularizers.L1(self.lam),
-		# 		kernel_initializer=initializers.glorot_uniform(seed=0),
-		# 		bias_initializer=initializers.glorot_uniform(seed=0)))
-
-
-		model = Sequential()
-		model.add(Conv2D(16, (2,2), 
-			padding="same",
-			input_shape=self.img_shape,
-			kernel_initializer=initializers.glorot_uniform(seed=0), 
-			bias_initializer=initializers.glorot_uniform(seed=0)))
-		model.add(Flatten())
-		model.add(Dense(16, activation='relu', 
-			kernel_initializer=initializers.glorot_uniform(seed=0), 
-			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(BatchNormalization(momentum=0.8))
-		# model.add(Dense(32, activation='relu', 
-		# 	kernel_initializer=initializers.glorot_uniform(seed=0), 
-		# 	bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(BatchNormalization(momentum=0.8))
-		model.add(Dense(16, activation='relu', 
-			kernel_initializer=initializers.glorot_uniform(seed=0), 
-			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.add(BatchNormalization(momentum=0.8))
-		# https://medium.com/apache-mxnet/transposed-convolutions-explained-with-ms-excel-52d13030c7e8
-		if self.method == 'mask':
-			model.add(Dense(np.prod(self.img_shape), 
-				# activation = tf.keras.activations.relu(max_value=1),
-				activation ='sigmoid',
-				# activation ='softmax',
-				activity_regularizer=tf.keras.regularizers.L1(self.lam),
-				# activity_regularizer=entropy_reg(self.lam),
-				kernel_initializer=initializers.glorot_uniform(seed=0),
-				bias_initializer=initializers.glorot_uniform(seed=0)))
-			# model.add(ReLU(max_value=1))
-		else:
-			model.add(Dense(np.prod(self.img_shape), 
-					activation ='tanh',
-					kernel_initializer=initializers.glorot_uniform(seed=0),
-					activity_regularizer=tf.keras.regularizers.L1(self.lam),
-					# activity_regularizer = entropy_reg(self.lam),
-					bias_initializer=initializers.glorot_uniform(seed=0)))
-
-		# model.add(ReLU(threshold=.1))
-		model.add(Reshape(self.img_shape))
-
-		img = Input(shape=self.img_shape)
-		noise = model(img)
-		# mask img
-		if self.method == 'mask':
-			mask_img = Multiply()([noise, img])
-			img_noise = Add()([img, -mask_img])
-			# img_noise = mask_img
-		else:
-			img_noise = Add()([img, noise])
-		# img = model(noise)
-		# model.summary()
-
-		return Model(img, img_noise)
-
-	def build_discriminator(self):
-
-		model = Sequential()
-
-		model.add(Conv2D(32, (3, 3),
-				activation='relu', 
-				kernel_initializer=initializers.glorot_uniform(seed=0),
-				bias_initializer=initializers.glorot_uniform(seed=0),
-				kernel_regularizer=tf.keras.regularizers.L1(0.001),
-				bias_regularizer=tf.keras.regularizers.L1(0.001),
-				input_shape=self.img_shape))
-		model.add(MaxPooling2D((2, 2)))
-		model.add(Flatten())
-		model.add(Dense(100, activation='relu',
-			kernel_regularizer=tf.keras.regularizers.L1(0.001),
-			bias_regularizer=tf.keras.regularizers.L1(0.001),
-			kernel_initializer=initializers.glorot_uniform(seed=0)))
-		model.add(Dense(self.labels, activation='softmax', 
-			kernel_initializer=initializers.glorot_uniform(seed=0),
-			kernel_regularizer=tf.keras.regularizers.L1(0.001),
-			bias_regularizer=tf.keras.regularizers.L1(0.001),
-			bias_initializer=initializers.glorot_uniform(seed=0)))
-		# model.summary()
-
-		img = Input(shape=self.img_shape)
-		prob = model(img)
-
-		return Model(img, prob)
 
 	# def train(self, epochs, batch_size=128, sample_interval=50):
 
@@ -249,8 +145,3 @@ class LocalGAN():
 	# 			cnt += 1
 	# 	fig.savefig("images/%d.png" % epoch)
 	# 	plt.close()
-
-
-if __name__ == '__main__':
-	gan = GAN()
-	gan.train(epochs=30000, batch_size=32, sample_interval=200)
