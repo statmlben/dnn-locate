@@ -3,6 +3,7 @@ import tensorflow as tf
 from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
+
 from keras.layers.advanced_activations import LeakyReLU, ReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
@@ -11,35 +12,44 @@ from tensorflow.keras import regularizers
 from tensorflow.keras import activations
 from keras import initializers
 import numpy as np
+from keras import backend as K
 
-def build_detector(input_dim, lam, type_='mask'):
+from tensorflow.keras.layers import Layer
+
+class TabNoise(Layer):
+
+	def __init__(self, output_dim, regularizer=tf.keras.regularizers.L1(1.), **kwargs):
+	   self.output_dim = output_dim
+	   super(TabNoise, self).__init__(**kwargs)
+	   # self.regularizer = regularizers.get(regularizer)
+	   self.regularizer = regularizer
+	   
+	def build(self, input_shape):
+	   self.D_ = self.add_weight(name='delta', 
+	   								shape=(self.output_dim,),
+	   								regularizer=self.regularizer,
+	   								initializer=initializers.glorot_uniform(seed=0), 
+	   								trainable=True)
+	   super(TabNoise, self).build(input_shape)  
+
+	def call(self, X):
+	   # return K.sum([X, -self.D_])
+	   return X - K.tanh(self.D_)
+
+	def compute_output_shape(self):
+	   return self.output_dim
+
+
+def build_detector(input_dim, regularizer, type_='mask'):
 	model = Sequential()
-	if type_ == 'mask':
-		model.add(Dense(input_dim, input_dim=1,
-			activation ='sigmoid',
-			activity_regularizer=tf.keras.regularizers.L1(lam),
-			kernel_initializer=initializers.glorot_uniform(seed=0),
-			bias_initializer=initializers.glorot_uniform(seed=0)))
-	else:
-		model.add(Dense(input_dim, input_dim=1,
-			activation ='tanh',
-			activity_regularizer=tf.keras.regularizers.L1(lam),
-			kernel_initializer=initializers.glorot_uniform(seed=0),
-			bias_initializer=initializers.glorot_uniform(seed=0)))
+	model.add(tf.keras.Input(shape=input_dim))
+	model.add(TabNoise(input_dim, regularizer=regularizer))
+	# if type_ == 'mask':
+	# 	model.add(Activation(activations.tanh))
+	# else:
+	# 	model.add(Activation(activations.sigmoid))
 
-	X = Input(shape=1)
-	noise = model(X)
-	# mask img
-	if type_ == 'mask':
-		mask_X = Multiply()([noise, X])
-		X_noise = Add()([X, -mask_X])
-		# img_noise = mask_img
-	else:
-		X_noise = Add()([X, noise])
-	# img = model(noise)
-	# model.summary()
-
-	return Model(X, X_noise)
+	return model
 
 def build_discriminator(input_dim, lam, labels=1):
 

@@ -48,26 +48,24 @@ class LocalGAN():
 		self.input_shape = input_shape
 		self.optimizer = optimizer
 		self.task = task
-		# self.discriminator = self.build_discriminator()
 		self.discriminator = discriminator
-
-		# Build the detector
-		# self.detector = self.build_detector()
 		self.detector = detector
+		self.R_square_test = []
+		self.R_square_train = []
 
 		# The decetor generate noise based on input imgs
-		img = Input(shape=self.input_shape)
-		img_noise = self.detector(img)
+		X = Input(shape=self.input_shape)
+		X_noise = self.detector(X)
 
 		# For the combined model we will only train the generator
 		self.discriminator.trainable = False
 
 		# The discriminator takes noised images as input and determines probs
-		prob = self.discriminator(img_noise)
+		prob = self.discriminator(X_noise)
 
 		# The combined model  (stacked detector and discriminator)
 		# Trains the detector to destroy the discriminator
-		self.combined = Model(img, prob)
+		self.combined = Model(X, prob)
 		if self.task == 'classification':
 			self.combined.compile(loss=neg_sparse_categorical_crossentropy, 
 				optimizer=optimizer,
