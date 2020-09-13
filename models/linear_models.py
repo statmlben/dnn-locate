@@ -15,6 +15,8 @@ import numpy as np
 from keras import backend as K
 
 from tensorflow.keras.layers import Layer
+from tensorflow.keras.constraints import max_norm
+
 
 class TabNoise(Layer):
 
@@ -28,9 +30,10 @@ class TabNoise(Layer):
 	   self.D_ = self.add_weight(name='delta', 
 	   								shape=(self.output_dim,),
 	   								regularizer=self.regularizer,
-	   								initializer=initializers.glorot_uniform(seed=0), 
+	   								# constraint=max_norm(max_value=2, axis=0),
+	   								initializer=initializers.RandomNormal(seed=0), 
 	   								trainable=True)
-	   super(TabNoise, self).build(input_shape)  
+	   super(TabNoise, self).build(input_shape)
 
 	def call(self, X):
 	   # return K.sum([X, -self.D_])
