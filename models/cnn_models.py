@@ -36,7 +36,6 @@ def build_detector(img_shape, lam, type_='mask'):
 	# 		kernel_initializer=initializers.glorot_uniform(seed=0),
 	# 		bias_initializer=initializers.glorot_uniform(seed=0)))
 
-
 	model = Sequential()
 	model.add(Conv2D(16, (2,2), 
 		padding="same",
@@ -118,5 +117,4 @@ def build_discriminator(img_shape, labels):
 
 	img = Input(shape=img_shape)
 	prob = model(img)
-
 	return Model(img, prob)

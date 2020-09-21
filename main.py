@@ -1,10 +1,5 @@
 from keras.datasets import mnist
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
-from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras.callbacks import EarlyStopping
 from models.cnn_models import build_detector, build_discriminator
 
@@ -14,6 +9,7 @@ import numpy as np
 from dnn_locate import LocalGAN
 from keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import GaussianNoise
+from EDA import show_samples, R_sqaure_path
 
 input_shape, labels = (28, 28, 1), 10
 sample = GaussianNoise(0.2)
@@ -33,127 +29,69 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
-## define models 
-detector = build_detector(img_shape=input_shape, lam=0.1, type_='mask')
-discriminator = build_discriminator(img_shape=input_shape, labels=labels)
-discriminator.load_weights("model_noise.h5")
+## define models
+lam_range = [.0056]
+R_square_train_lst, R_square_test_lst = [], []
 
-## define framework
-elk = LocalGAN(input_shape=input_shape, labels=labels, discriminator=discriminator, detector=detector)
-es_detect = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, verbose=1, patience=3, restore_best_weights=True)
-es_learn = EarlyStopping(monitor='val_accuracy', mode='max', verbose=1, patience=5, restore_best_weights=True)
+for lam in lam_range:
+	detector = build_detector(img_shape=input_shape, lam=lam, type_='mask')
 
-print('###'*20)
-print('###'*5+' '*6+'Train for learner'+' '*5+'###'*5)
-print('###'*20)
+	discriminator = build_discriminator(img_shape=input_shape, labels=labels)
+	discriminator.compile(loss='sparse_categorical_crossentropy', 
+							optimizer=Adam(lr=0.001),
+							metrics=['accuracy'])
 
-# learn_tmp = elk.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
-# elk.discriminator.save_weights("model_01.h5")
-# elk.discriminator.load_weights("model_test.h5")
-# elk.discriminator.load_weights("model_01.h5")
-# elk.discriminator.load_weights("model_noise.h5")
-train_loss_base, train_acc_base = elk.discriminator.evaluate(X_train, y_train)
-test_loss_base, test_acc_base = elk.discriminator.evaluate(X_test, y_test)
+	discriminator.load_weights("model_noise.h5")
 
-print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss_base))
-print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
+	## define framework
+	shiing = LocalGAN(input_shape=input_shape,
+					labels=labels,
+					discriminator=discriminator,
+					detector=detector,
+					optimizer=SGD(lr=0.001),
+					task='classification')
 
+	es_detect = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
+							verbose=1, patience=5, restore_best_weights=False)
 
-print('###'*20)
-print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)
-print('###'*20)
+	es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
+							verbose=1, patience=10, restore_best_weights=True)
 
-detect_tmp = elk.combined.fit(x=X_train, y=y_train, callbacks=[es_detect], 
-								epochs=300, batch_size=128)
-# validation_split=.2
+	print('###'*20)
+	print('###'*5+' '*6+'Train for learner'+' '*5+'###'*5)
+	print('###'*20)
 
-## show the results
-X_train_noise = elk.detector.predict(X_train)
-X_test_noise = elk.detector.predict(X_test)
+	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
+	# shiing.discriminator.save_weights("model_01.h5")
+	# shiing.discriminator.load_weights("model_test.h5")
+	train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
+	test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 
-train_loss, train_acc = elk.discriminator.evaluate(X_train_noise, y_train)
-test_loss, test_acc = elk.discriminator.evaluate(X_test_noise, y_test)
-print('lam: %.5f; train_loss: %.3f; test_loss: %.3f' %(lam, train_loss, test_loss))
-print('lam: %.5f; train_acc: %.3f; test_acc: %.3f' %(lam, train_acc, test_acc))
+	print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss_base))
+	print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
 
 
-if method == 'mask':
-	## show the plot for image 9
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[0,:,:,0])
+	print('###'*20)
+	print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)
+	print('###'*20)
 
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow(np.nan_to_num( (X_test_noise[0,:,:,0] - X_test[0,:,:,0]) / X_test[0,:,:,0]))
+	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect], 
+									epochs=300, batch_size=128)
+	# validation_split=.2
 
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[0,:,:,0])
+	## show the results
+	X_train_noise = shiing.detector.predict(X_train)
+	X_test_noise = shiing.detector.predict(X_test)
 
-	## show the plot for image 7
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[1,:,:,0])
+	train_loss, train_acc = shiing.discriminator.evaluate(X_train_noise, y_train)
+	test_loss, test_acc = shiing.discriminator.evaluate(X_test_noise, y_test)
+	print('lam: %.5f; train_loss: %.3f; test_loss: %.3f' %(lam, train_loss, test_loss))
+	print('lam: %.5f; train_acc: %.3f; test_acc: %.3f' %(lam, train_acc, test_acc))
 
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow(np.nan_to_num( (X_test_noise[1,:,:,0] - X_test[1,:,:,0]) / X_test[1,:,:,0]))
-
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[1,:,:,0])
-
-	## show the plot for image 7
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[3,:,:,0])
-
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow(np.nan_to_num( (X_test_noise[3,:,:,0] - X_test[3,:,:,0]) / X_test[3,:,:,0]))
-
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[3,:,:,0])
-
-	plt.show()
-
-
-	## print total sum
-	## compute the total mount of the proporion\n",
-	print(np.sum(np.nan_to_num( (X_test[0,:,:,0] - X_test_noise[0,:,:,0]) / X_test[0,:,:,0])))
-else:
-	## show the plot for image 9
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[0,:,:,0])
-
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow((X_test_noise[0,:,:,0] - X_test[0,:,:,0]))
-
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[0,:,:,0])
-
-	## show the plot for image 7
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[1,:,:,0])
-
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow( X_test_noise[1,:,:,0] - X_test[1,:,:,0])
-
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[1,:,:,0])
-
-	## show the plot for image 7
-	fig = plt.figure(figsize = (10,10))
-	ax1 = fig.add_subplot(1,3,1)
-	ax1.imshow(X_test[3,:,:,0])
-
-	ax3 = fig.add_subplot(1,3,3)
-	ax3.imshow(X_test_noise[3,:,:,0] - X_test[3,:,:,0])
-
-	ax2 = fig.add_subplot(1,3,2)
-	ax2.imshow(X_test_noise[3,:,:,0])
-
-	plt.show()
-
-
-	## print total sum
-	## compute the total mount of the proporion\n",
-	print(np.sum(np.abs(X_test[0,:,:,0] - X_test_noise[0,:,:,0])))
+	shiing.R_square_train = 1. - train_loss_base / train_loss
+	shiing.R_sqaure_test = 1. - test_loss_base / test_loss
+	print('lam: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
+		%(lam, shiing.R_square_train, shiing.R_sqaure_test))
+	R_square_train_lst.append(shiing.R_square_train)
+	R_square_test_lst.append(shiing.R_sqaure_test)
+	show_samples(X_test, X_test_noise)
