@@ -2,9 +2,10 @@ import matplotlib.pyplot as plt
 from random import randint
 import seaborn as sns
 import numpy as np
+import pandas as pd
 
 def show_samples(X_test, X_test_noise, num_figs=3, method='mask'):
-	ind = [randint(0,len(X_test)) for i in range(num_figs)]
+	ind = [randint(0,len(X_test)-1) for i in range(num_figs)]
 	if method == 'mask':
 		X_diff = np.nan_to_num( (X_test_noise - X_test) / X_test)
 	elif method == 'noise':
@@ -18,9 +19,11 @@ def show_samples(X_test, X_test_noise, num_figs=3, method='mask'):
 
 	plt.show()
 
-def R_sqaure_path(lam_range, R_square_train_lst, R_square_test_lst=None):
-	R_train = pd.DataFrame({'lam': lam_range, 'R_square': R_square_train_lst, 'Type': ['R_square_train']*len(lam_range)})
-	R_test = pd.DataFrame({'lam': lam_range, 'R_square': R_square_test_lst, 'Type': ['R_square_test']*len(lam_range)})
+def R_sqaure_path(lam_range, norm_lst, norm_test_lst, R_square_train_lst, R_square_test_lst=None):
+	R_train = pd.DataFrame({'lam': lam_range, 'l1-norm': norm_lst, 'R_square': R_square_train_lst, 'Type': ['R_square_train']*len(lam_range)})
+	R_test = pd.DataFrame({'lam': lam_range, 'l1-norm': norm_test_lst, 'R_square': R_square_test_lst, 'Type': ['R_square_test']*len(lam_range)})
 	df = pd.concat([R_train, R_test])
 	sns.lineplot(data=df, x="lam", y="R_square", color='k', markers=True, alpha=.7, style='Type', lw=2.)
+	plt.show()
+	sns.lineplot(data=df, x="l1-norm", y="R_square", color='k', markers=True, alpha=.7, style='Type', lw=2.)
 	plt.show()

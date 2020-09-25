@@ -1,7 +1,8 @@
 from keras.datasets import mnist
 from keras.optimizers import Adam, SGD
-from keras.callbacks import EarlyStopping
-from models.cnn_models import build_detector, build_discriminator
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+# from models.cnn_models import build_detector, build_discriminator
+from models.cnn_models_v2 import build_detector, build_discriminator
 
 import matplotlib.pyplot as plt
 import sys
@@ -30,8 +31,9 @@ X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
 ## define models
-lam_range = [.0056]
-R_square_train_lst, R_square_test_lst = [], []
+# lam_range = np.arange(.003, .0066, .00005)
+lam_range = [20.]
+R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst = [], [], [], []
 
 for lam in lam_range:
 	detector = build_detector(img_shape=input_shape, lam=lam, type_='mask')
@@ -48,11 +50,14 @@ for lam in lam_range:
 					labels=labels,
 					discriminator=discriminator,
 					detector=detector,
-					optimizer=SGD(lr=0.001),
+					optimizer=SGD(lr=.5),
+					# optimizer=SGD(lr=0.001),
 					task='classification')
-
-	es_detect = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
-							verbose=1, patience=5, restore_best_weights=False)
+	
+	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.4, min_lr=0.0001, 
+							verbose=1, patience=5, mode="min")
+	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
+							verbose=1, patience=20, restore_best_weights=False)
 
 	es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
 							verbose=1, patience=10, restore_best_weights=True)
@@ -75,13 +80,23 @@ for lam in lam_range:
 	print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)
 	print('###'*20)
 
-	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect], 
+	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
 									epochs=300, batch_size=128)
 	# validation_split=.2
 
 	## show the results
 	X_train_noise = shiing.detector.predict(X_train)
 	X_test_noise = shiing.detector.predict(X_test)
+
+	if method == 'mask':
+		X_diff = np.nan_to_num( (X_train_noise - X_train) / X_train)
+		X_diff_test = np.nan_to_num( (X_test_noise - X_test) / X_test)
+	elif method == 'noise':
+		X_diff = X_train_noise[0,:,:,0] - X_train[0,:,:,0]
+		X_diff_test = X_test_noise[0,:,:,0] - X_test[0,:,:,0]
+
+	norm_tmp = np.sum(np.abs(X_diff))/len(X_diff)
+	norm_tmp_test = np.sum(np.abs(X_diff_test))/len(X_diff_test)
 
 	train_loss, train_acc = shiing.discriminator.evaluate(X_train_noise, y_train)
 	test_loss, test_acc = shiing.discriminator.evaluate(X_test_noise, y_test)
@@ -90,8 +105,13 @@ for lam in lam_range:
 
 	shiing.R_square_train = 1. - train_loss_base / train_loss
 	shiing.R_sqaure_test = 1. - test_loss_base / test_loss
-	print('lam: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
-		%(lam, shiing.R_square_train, shiing.R_sqaure_test))
+	print('lam: %.3f; diff_norm: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
+		%(lam, norm_tmp, shiing.R_square_train, shiing.R_sqaure_test))
 	R_square_train_lst.append(shiing.R_square_train)
 	R_square_test_lst.append(shiing.R_sqaure_test)
+	norm_lst.append(norm_tmp)
+	norm_test_lst.append(norm_tmp_test)
 	show_samples(X_test, X_test_noise)
+
+# R_sqaure_path(lam_range, norm_lst, norm_test_lst, 
+# 				R_square_train_lst, R_square_test_lst)
