@@ -32,7 +32,8 @@ X_test = np.expand_dims(X_test, axis=3)
 
 ## define models
 # lam_range = np.arange(.003, .0066, .00005)
-lam_range = [20.]
+lam_range = [8, 10, 12, 14, 16, 18, 20, 22, 24, 26]
+# lam_range = [24., 26.]
 R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst = [], [], [], []
 
 for lam in lam_range:
@@ -50,14 +51,14 @@ for lam in lam_range:
 					labels=labels,
 					discriminator=discriminator,
 					detector=detector,
-					optimizer=SGD(lr=.5),
+					optimizer=SGD(lr=1.),
 					# optimizer=SGD(lr=0.001),
 					task='classification')
 	
-	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.4, min_lr=0.0001, 
-							verbose=1, patience=5, mode="min")
-	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
-							verbose=1, patience=20, restore_best_weights=False)
+	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.618, min_lr=0.0001, 
+							verbose=1, patience=4, mode="min")
+	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.00001, 
+							verbose=1, patience=15, restore_best_weights=False)
 
 	es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
 							verbose=1, patience=10, restore_best_weights=True)
@@ -81,7 +82,7 @@ for lam in lam_range:
 	print('###'*20)
 
 	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
-									epochs=300, batch_size=128)
+									epochs=500, batch_size=128)
 	# validation_split=.2
 
 	## show the results
@@ -111,7 +112,7 @@ for lam in lam_range:
 	R_square_test_lst.append(shiing.R_sqaure_test)
 	norm_lst.append(norm_tmp)
 	norm_test_lst.append(norm_tmp_test)
-	show_samples(X_test, X_test_noise)
+	# show_samples(X_test, X_test_noise)
 
-# R_sqaure_path(lam_range, norm_lst, norm_test_lst, 
-# 				R_square_train_lst, R_square_test_lst)
+R_sqaure_path(lam_range, norm_lst, norm_test_lst, 
+				R_square_train_lst, R_square_test_lst)
