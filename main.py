@@ -30,11 +30,11 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
+demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
 ## define models
-# lam_range = np.arange(.003, .0066, .00005)
-lam_range = [2, 4, 6, 8, 10, 12, 14, 16, 18, 19]
-# lam_range = [24., 26.]
-R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst = [], [], [], []
+lam_range = [5, 6, 8, 10, 12, 14, 15, 16, 18]
+# lam_range = [15, 18]
+R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst, X_test_R, X_test_noise_R = [], [], [], [], [], []
 
 for lam in lam_range:
 	detector = build_detector(img_shape=input_shape, lam=lam, type_='mask')
@@ -112,7 +112,12 @@ for lam in lam_range:
 	R_square_test_lst.append(shiing.R_sqaure_test)
 	norm_lst.append(norm_tmp)
 	norm_test_lst.append(norm_tmp_test)
-	# show_samples(X_test, X_test_noise, num_figs=2)
+	X_test_R.append(X_test[demo_ind])
+	X_test_noise_R.append(X_test_noise[demo_ind])
 
 R_sqaure_path(lam_range, norm_lst, norm_test_lst, 
 				R_square_train_lst, R_square_test_lst)
+
+X_test_R, X_test_noise_R, R_square_test_lst = np.array(X_test_R), np.array(X_test_noise_R), np.array(R_square_test_lst)
+show_samples(R_square_test_lst, X_test_R, X_test_noise_R)
+
