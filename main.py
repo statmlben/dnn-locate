@@ -12,7 +12,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import GaussianNoise
 from EDA import show_samples, R_sqaure_path
 
-input_shape, labels = (28, 28, 1), 10
+input_shape, labels = (28, 28, 1), 2
 sample = GaussianNoise(0.2)
 
 method = 'mask'

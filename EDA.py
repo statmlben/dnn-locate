@@ -4,7 +4,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-def show_samples(R_square, X_test_R, X_test_noise_R, method='mask'):
+def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mask'):
 	""" Plots generalized partial R values and its corresponding images.
 	Parameters
 	----------
@@ -19,20 +19,24 @@ def show_samples(R_square, X_test_R, X_test_noise_R, method='mask'):
 	if method == 'mask':
 		X_diff_R = - (X_test_noise_R - X_test_R) / (X_test_R+1e-9)
 	elif method == 'noise':
-		X_diff_R = X_test_noise_R - X_test_R
+		X_diff_R = - (X_test_noise_R - X_test_R)
 	fig = plt.figure(constrained_layout=False)
 	heights = [1]*rows
 	heights.append(.06)
 	spec = fig.add_gridspec(ncols=cols, nrows=rows+1, height_ratios=heights)
 	for row in range(rows):
 		for col in range(cols):
+			if threshold is None:
+				threshold_tmp = 1e-3
+			else:
+				threshold_tmp = threshold[col]
 			# compute X_diff_tmp
 			X_diff_tmp = X_diff_R[col,row]
-			X_diff_tmp[np.where(np.abs(X_diff_tmp)<=1e-3)] = np.nan
+			X_diff_tmp[np.where(np.abs(X_diff_tmp)<=threshold_tmp)] = np.nan
 			ax = fig.add_subplot(spec[row, col])
 			im1 = ax.imshow(X_test_R[col,row], vmin=0, vmax=1, cmap='binary')
 			ax.axis('off')
-			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd')
+			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.6)
 			ax.axis('off')
 	x_ax = fig.add_subplot(spec[-1, :])
 	x_ax = sns.heatmap(R_square.reshape(1,cols), cmap='binary', linewidths=.00, vmin=0, vmax=1, annot=True, cbar=False)

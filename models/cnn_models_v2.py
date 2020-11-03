@@ -3,7 +3,7 @@ import tensorflow as tf
 from keras.datasets import mnist
 from keras import backend as K
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
+from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D, GlobalAveragePooling2D
 from keras.layers.advanced_activations import LeakyReLU, ReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
@@ -78,7 +78,7 @@ def build_discriminator(img_shape, labels):
 	model = Sequential()
 
 	model.add(Conv2D(32, (3, 3),
-			activation='relu', 
+			activation='relu', name='last_conv',
 			kernel_initializer=initializer,
 			bias_initializer=initializer,
 			kernel_regularizer=tf.keras.regularizers.L1(0.001),
@@ -90,13 +90,47 @@ def build_discriminator(img_shape, labels):
 		kernel_regularizer=tf.keras.regularizers.L1(0.001),
 		bias_regularizer=tf.keras.regularizers.L1(0.001),
 		kernel_initializer=initializer))
-	model.add(Dense(labels, activation='softmax', 
+	model.add(Dense(labels, activation='softmax', name='output_layer',
 		kernel_initializer=initializer,
 		kernel_regularizer=tf.keras.regularizers.L1(0.001),
 		bias_regularizer=tf.keras.regularizers.L1(0.001),
 		bias_initializer=initializer))
 	# model.summary()
+	return model
 
-	img = Input(shape=img_shape)
-	prob = model(img)
-	return Model(img, prob)
+
+def build_discriminator_gap(img_shape, labels):
+	model = Sequential()
+	model.add(Conv2D(64, (2, 2),
+			activation='relu',
+			# padding="same",
+			kernel_initializer=initializer,
+			bias_initializer=initializer,
+			kernel_regularizer=tf.keras.regularizers.L1(0.001),
+			bias_regularizer=tf.keras.regularizers.L1(0.001),
+			input_shape=img_shape))
+	model.add(Conv2D(64, (2, 2),
+		name='last_conv',
+		activation='relu',
+		# padding="same",
+		kernel_initializer=initializer,
+		bias_initializer=initializer,
+		kernel_regularizer=tf.keras.regularizers.L1(0.001),
+		bias_regularizer=tf.keras.regularizers.L1(0.001),
+		input_shape=img_shape))
+	model.add(MaxPooling2D((2, 2)))	
+	model.add(GlobalAveragePooling2D())
+	# model.add(Flatten())
+	# model.add(Dense(100, activation='relu',
+	# 	kernel_regularizer=tf.keras.regularizers.L1(0.001),
+	# 	bias_regularizer=tf.keras.regularizers.L1(0.001),
+	# 	kernel_initializer=initializer))
+	model.add(Dense(labels, activation='softmax', name='output_layer',
+		kernel_initializer=initializer,
+		kernel_regularizer=tf.keras.regularizers.L1(0.001),
+		bias_regularizer=tf.keras.regularizers.L1(0.001),
+		bias_initializer=initializer))
+	# model.summary()
+	# img = Input(shape=img_shape)
+	# prob = model(img)
+	return model

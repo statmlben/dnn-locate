@@ -16,7 +16,7 @@ import sys
 import numpy as np
 
 from keras_gradient_noise import add_gradient_noise
-from SGLD import SGLD
+# from SGLD import SGLD
 
 lr, inv_temp = 0.0005, 1.
 
