@@ -12,7 +12,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import GaussianNoise
 from EDA import show_samples, R_sqaure_path
 
-input_shape, labels = (28, 28, 1), 2
+input_shape, labels = (28, 28, 1), 10
 sample = GaussianNoise(0.2)
 
 method = 'mask'
@@ -30,10 +30,15 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
-demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
+# demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
+demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
+# plt.imshow(X_test[demo_ind[0]])
+# plt.show()
+# plt.imshow(X_test[demo_ind[1]])
+# plt.show()
 ## define models
-lam_range = [5, 6, 8, 10, 12, 14, 15, 16, 18]
-# lam_range = [15, 18]
+# lam_range = [5, 6, 8, 10, 12, 14, 15, 16, 18]
+lam_range = [18, 20]
 R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst, X_test_R, X_test_noise_R = [], [], [], [], [], []
 
 for lam in lam_range:
@@ -43,8 +48,6 @@ for lam in lam_range:
 	discriminator.compile(loss='sparse_categorical_crossentropy', 
 							optimizer=Adam(lr=0.001),
 							metrics=['accuracy'])
-
-	discriminator.load_weights("model_noise.h5")
 
 	## define framework
 	shiing = LocalGAN(input_shape=input_shape,
@@ -68,8 +71,8 @@ for lam in lam_range:
 	print('###'*20)
 
 	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
-	# shiing.discriminator.save_weights("model_01.h5")
-	# shiing.discriminator.load_weights("model_test.h5")
+	# shiing.discriminator.save_weights("model1107.h5")
+	shiing.discriminator.load_weights("model1107.h5")
 	train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
 	test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 
@@ -90,8 +93,8 @@ for lam in lam_range:
 	X_test_noise = shiing.detector.predict(X_test)
 
 	if method == 'mask':
-		X_diff = np.nan_to_num( (X_train_noise - X_train) / X_train)
-		X_diff_test = np.nan_to_num( (X_test_noise - X_test) / X_test)
+		X_diff = np.nan_to_num( (X_train_noise - X_train) / (X_train+1e-8) )
+		X_diff_test = np.nan_to_num( (X_test_noise - X_test) / (X_test+1e-8) )
 	elif method == 'noise':
 		X_diff = X_train_noise[0,:,:,0] - X_train[0,:,:,0]
 		X_diff_test = X_test_noise[0,:,:,0] - X_test[0,:,:,0]
@@ -121,3 +124,10 @@ R_sqaure_path(lam_range, norm_lst, norm_test_lst,
 X_test_R, X_test_noise_R, R_square_test_lst = np.array(X_test_R), np.array(X_test_noise_R), np.array(R_square_test_lst)
 show_samples(R_square_test_lst, X_test_R, X_test_noise_R)
 
+X_test_demo, X_test_noise_demo = [], []
+for i in range(9):
+	demo_ind = np.array([np.where(y_test==7)[0][i], np.where(y_test==9)[0][i]])
+	X_test_demo.append(X_test[demo_ind])
+	X_test_noise_demo.append(X_test_noise[demo_ind])
+X_test_demo, X_test_noise_demo = np.array(X_test_demo), np.array(X_test_noise_demo)
+show_diff_samples(X_test=X_test_demo, X_test_noise=X_test_noise_demo)
