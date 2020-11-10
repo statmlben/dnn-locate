@@ -10,7 +10,7 @@ import numpy as np
 from dnn_locate import LocalGAN
 from keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.layers import GaussianNoise
-from EDA import show_samples, R_sqaure_path
+from EDA import show_samples, R_sqaure_path, show_diff_samples
 
 input_shape, labels = (28, 28, 1), 10
 sample = GaussianNoise(0.2)
@@ -30,15 +30,15 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
-# demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
-demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
+demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
+# demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
 # plt.imshow(X_test[demo_ind[0]])
 # plt.show()
 # plt.imshow(X_test[demo_ind[1]])
 # plt.show()
 ## define models
-# lam_range = [5, 6, 8, 10, 12, 14, 15, 16, 18]
-lam_range = [18, 20]
+lam_range = [6, 8, 10, 12, 14, 15, 16, 18, 20]
+# lam_range = [18]
 R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst, X_test_R, X_test_noise_R = [], [], [], [], [], []
 
 for lam in lam_range:
@@ -67,7 +67,7 @@ for lam in lam_range:
 							verbose=1, patience=10, restore_best_weights=True)
 
 	print('###'*20)
-	print('###'*5+' '*6+'Train for learner'+' '*5+'###'*5)
+	print('###'*5+' '*6+'Load learner'+' '*5+'###'*5)
 	print('###'*20)
 
 	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
@@ -81,7 +81,7 @@ for lam in lam_range:
 
 
 	print('###'*20)
-	print('#'*16+' '*5+'Train for detector'+' '*5+'#'*16)
+	print('#'*16+' '*5+'Train detector'+' '*5+'#'*16)
 	print('###'*20)
 
 	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
@@ -104,12 +104,12 @@ for lam in lam_range:
 
 	train_loss, train_acc = shiing.discriminator.evaluate(X_train_noise, y_train)
 	test_loss, test_acc = shiing.discriminator.evaluate(X_test_noise, y_test)
-	print('lam: %.5f; train_loss: %.3f; test_loss: %.3f' %(lam, train_loss, test_loss))
-	print('lam: %.5f; train_acc: %.3f; test_acc: %.3f' %(lam, train_acc, test_acc))
+	print('lam: %.2f; train_loss: %.3f; test_loss: %.3f' %(lam, train_loss, test_loss))
+	print('lam: %.2f; train_acc: %.3f; test_acc: %.3f' %(lam, train_acc, test_acc))
 
 	shiing.R_square_train = 1. - train_loss_base / train_loss
 	shiing.R_sqaure_test = 1. - test_loss_base / test_loss
-	print('lam: %.3f; diff_norm: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
+	print('lam: %.2f; diff_norm: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
 		%(lam, norm_tmp, shiing.R_square_train, shiing.R_sqaure_test))
 	R_square_train_lst.append(shiing.R_square_train)
 	R_square_test_lst.append(shiing.R_sqaure_test)
@@ -118,16 +118,16 @@ for lam in lam_range:
 	X_test_R.append(X_test[demo_ind])
 	X_test_noise_R.append(X_test_noise[demo_ind])
 
-R_sqaure_path(lam_range, norm_lst, norm_test_lst, 
+R_sqaure_path(lam_range, norm_lst, norm_test_lst,
 				R_square_train_lst, R_square_test_lst)
 
 X_test_R, X_test_noise_R, R_square_test_lst = np.array(X_test_R), np.array(X_test_noise_R), np.array(R_square_test_lst)
 show_samples(R_square_test_lst, X_test_R, X_test_noise_R)
 
-X_test_demo, X_test_noise_demo = [], []
-for i in range(9):
-	demo_ind = np.array([np.where(y_test==7)[0][i], np.where(y_test==9)[0][i]])
-	X_test_demo.append(X_test[demo_ind])
-	X_test_noise_demo.append(X_test_noise[demo_ind])
-X_test_demo, X_test_noise_demo = np.array(X_test_demo), np.array(X_test_noise_demo)
-show_diff_samples(X_test=X_test_demo, X_test_noise=X_test_noise_demo)
+# X_test_demo, X_test_noise_demo = [], []
+# for i in range(5,14):
+# 	demo_ind = np.array([np.where(y_test==7)[0][i], np.where(y_test==9)[0][i]])
+# 	X_test_demo.append(X_test[demo_ind])
+# 	X_test_noise_demo.append(X_test_noise[demo_ind])
+# X_test_demo, X_test_noise_demo = np.array(X_test_demo), np.array(X_test_noise_demo)
+# show_diff_samples(X_test=X_test_demo, X_test_noise=X_test_noise_demo)
