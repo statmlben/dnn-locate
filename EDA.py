@@ -36,7 +36,7 @@ def show_diff_samples(X_test, X_test_noise, threshold=None, method='mask'):
 			ax.axis('off')
 			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.6)
 			ax.axis('off')
-	plt.subplots_adjust(top = 0.99, bottom=0.01, hspace=0.0001, wspace=0.0001, right=0.82)
+	plt.subplots_adjust(top = 0.8, bottom=0.2, hspace=0.2, wspace=0.2, right=0.82)
 	cbar_ax1 = fig.add_axes([0.9, 0.1, 0.015, 0.7])
 	cbar_ax2 = fig.add_axes([0.85, 0.1, 0.015, 0.7])
 	fig.colorbar(im1, cax=cbar_ax1)
