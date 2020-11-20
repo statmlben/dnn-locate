@@ -28,14 +28,13 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
-demo_ind = np.array([np.where(y_test==7)[0][4], np.where(y_test==9)[0][4]])
-# demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
+demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
 # plt.imshow(X_test[demo_ind[0]])
 # plt.show()
 # plt.imshow(X_test[demo_ind[1]])
 # plt.show()
 ## define models
-tau = 18
+tau = 16
 detector = build_detector(img_shape=input_shape, lam=tau, type_='mask')
 
 discriminator = build_discriminator(img_shape=input_shape, labels=labels)
@@ -48,12 +47,12 @@ shiing = LocalGAN(input_shape=input_shape,
 				labels=labels,
 				discriminator=discriminator,
 				detector=detector,
-				optimizer=SGD(lr=1.),
+				optimizer=SGD(lr=.5),
 				# optimizer=SGD(lr=0.001),
 				task='classification')
 
 es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.618, min_lr=0.0001, 
-						verbose=1, patience=4, mode="min")
+						verbose=1, patience=5, mode="min")
 es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.00001, 
 						verbose=1, patience=15, restore_best_weights=False)
 
@@ -74,7 +73,7 @@ print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss
 print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
 
 detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
-								epochs=500, batch_size=128)
+								epochs=1000, batch_size=128)
 
 ## show the results
 X_test_demo, X_test_noise_demo = [], []

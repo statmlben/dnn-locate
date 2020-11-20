@@ -4,9 +4,9 @@ from keras.datasets import mnist
 from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D
 from keras.layers.advanced_activations import LeakyReLU, ReLU
+from tensorflow.keras.models import Sequential, Model
 from keras.layers.convolutional import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras import regularizers
 from tensorflow.keras import activations
 from keras import initializers
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import sys
 import numpy as np
 
-from keras_gradient_noise import add_gradient_noise
+# from keras_gradient_noise import add_gradient_noise
 # from SGLD import SGLD
 
 lr, inv_temp = 0.0005, 1.

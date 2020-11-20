@@ -4,16 +4,17 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 # from models.cnn_models import build_detector, build_discriminator
 from models.cnn_models_v2 import build_detector, build_discriminator
 
-import matplotlib.pyplot as plt
-import sys
-import numpy as np
 from dnn_locate import LocalGAN
+import matplotlib.pyplot as plt
+import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.layers import GaussianNoise
 from EDA import show_samples, R_sqaure_path, show_diff_samples
+import tensorflow as tf
+
+np.random.seed(3)
+tf.random.set_seed(3)
 
 input_shape, labels = (28, 28, 1), 10
-sample = GaussianNoise(0.2)
 
 method = 'mask'
 ## load data
@@ -37,8 +38,8 @@ demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
 # plt.imshow(X_test[demo_ind[1]])
 # plt.show()
 ## define models
-lam_range = [6, 8, 10, 12, 14, 15, 16, 18, 20]
-# lam_range = [18]
+# lam_range = [6, 8, 10, 12, 14, 15, 16, 18, 20]
+lam_range = [6, 8, 10, 12, 14, 16, 18, 20, 22]
 R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst, X_test_R, X_test_noise_R = [], [], [], [], [], []
 
 for lam in lam_range:
@@ -58,10 +59,10 @@ for lam in lam_range:
 					# optimizer=SGD(lr=0.001),
 					task='classification')
 	
-	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.618, min_lr=0.0001, 
+	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=0.0001, 
 							verbose=1, patience=4, mode="min")
 	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.00001, 
-							verbose=1, patience=15, restore_best_weights=False)
+							verbose=1, patience=10, restore_best_weights=False)
 
 	es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
 							verbose=1, patience=10, restore_best_weights=True)
@@ -72,7 +73,7 @@ for lam in lam_range:
 
 	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
 	# shiing.discriminator.save_weights("model1107.h5")
-	shiing.discriminator.load_weights("model1107.h5")
+	shiing.discriminator.load_weights("./saved_model/model1107.h5")
 	train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
 	test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 
@@ -85,7 +86,7 @@ for lam in lam_range:
 	print('###'*20)
 
 	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
-									epochs=500, batch_size=128)
+									epochs=1000, batch_size=128)
 	# validation_split=.2
 
 	## show the results

@@ -45,10 +45,6 @@ def show_diff_samples(X_test, X_test_noise, threshold=None, method='mask'):
 	plt.show()
 
 
-
-
-
-
 def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mask'):
 	""" Plots generalized partial R values and its corresponding images.
 	Parameters
@@ -81,7 +77,7 @@ def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mas
 			ax = fig.add_subplot(spec[row, col])
 			im1 = ax.imshow(X_test_R[col,row], vmin=0, vmax=1, cmap='binary')
 			ax.axis('off')
-			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.6)
+			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.8)
 			ax.axis('off')
 	x_ax = fig.add_subplot(spec[-1, :])
 	x_ax = sns.heatmap(R_square.reshape(1,cols), cmap='binary', linewidths=.00, vmin=0, vmax=1, annot=True, cbar=False)
