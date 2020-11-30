@@ -31,15 +31,27 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
-demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
+# X, y = np.vstack((X_train, X_test)), np.hstack((y_train, y_test))
+
+# from sklearn.model_selection import KFold
+# kf = KFold(n_splits=10)
+
+# k = 0
+# for tr, te in kf.split(X):
+# 	if k == 7:
+# 		X_train, y_train = X[tr], y[tr]
+# 		X_test, y_test = X[te], y[te]
+# 	k += 1
+
+demo_ind = np.array([np.where(y_test==7)[0][0], np.where(y_test==9)[0][17]])
 # demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
 # plt.imshow(X_test[demo_ind[0]])
 # plt.show()
 # plt.imshow(X_test[demo_ind[1]])
 # plt.show()
 ## define models
-# lam_range = [6, 8, 10, 12, 14, 15, 16, 18, 20]
-lam_range = [6, 8, 10, 12, 14, 16, 18, 20, 22]
+lam_range = [4, 6, 8, 10, 12, 14, 16, 18]
+# lam_range = [6]
 R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst, X_test_R, X_test_noise_R = [], [], [], [], [], []
 
 for lam in lam_range:
@@ -55,14 +67,16 @@ for lam in lam_range:
 					labels=labels,
 					discriminator=discriminator,
 					detector=detector,
-					optimizer=SGD(lr=1.),
-					# optimizer=SGD(lr=0.001),
+					optimizer=SGD(lr=10./lam),
+					# optimizer=SGD(lr=1.),
 					task='classification')
 	
-	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=0.0001, 
-							verbose=1, patience=4, mode="min")
-	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.00001, 
-							verbose=1, patience=10, restore_best_weights=True)
+	# es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=0.0001, 
+	# 						verbose=1, patience=4, mode="min")
+	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=.0001,
+						verbose=1, patience=5, mode="min")
+	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
+							verbose=1, patience=15, restore_best_weights=True)
 
 	es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
 							verbose=1, patience=10, restore_best_weights=True)
@@ -72,8 +86,10 @@ for lam in lam_range:
 	print('###'*20)
 
 	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
-	# shiing.discriminator.save_weights("model1107.h5")
-	shiing.discriminator.load_weights("./saved_model/model1107.h5")
+	# shiing.discriminator.save_weights("./saved_model/model1107.h5")
+	# shiing.discriminator.load_weights("./saved_model/model1107.h5")
+	shiing.discriminator.load_weights("./saved_model/model1119.h5")
+	# shiing.discriminator.load_weights("./saved_model/model1126.h5")
 	train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
 	test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 
@@ -85,7 +101,9 @@ for lam in lam_range:
 	print('#'*16+' '*5+'Train detector'+' '*5+'#'*16)
 	print('###'*20)
 
-	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es_detect2], 
+	detect_tmp = shiing.combined.fit(x=X_train, y=y_train, 
+									# callbacks=[es_detect2],
+									callbacks=[es_detect1, es_detect2], 
 									epochs=1000, batch_size=128)
 	# validation_split=.2
 
@@ -125,10 +143,10 @@ R_sqaure_path(lam_range, norm_lst, norm_test_lst,
 X_test_R, X_test_noise_R, R_square_test_lst = np.array(X_test_R), np.array(X_test_noise_R), np.array(R_square_test_lst)
 show_samples(R_square_test_lst, X_test_R, X_test_noise_R)
 
-# X_test_demo, X_test_noise_demo = [], []
-# for i in range(5,14):
-# 	demo_ind = np.array([np.where(y_test==7)[0][i], np.where(y_test==9)[0][i]])
-# 	X_test_demo.append(X_test[demo_ind])
-# 	X_test_noise_demo.append(X_test_noise[demo_ind])
-# X_test_demo, X_test_noise_demo = np.array(X_test_demo), np.array(X_test_noise_demo)
-# show_diff_samples(X_test=X_test_demo, X_test_noise=X_test_noise_demo)
+X_test_demo, X_test_noise_demo = [], []
+for i in range(5,14):
+	demo_ind = np.array([np.where(y_test==7)[0][i], np.where(y_test==9)[0][i]])
+	X_test_demo.append(X_test[demo_ind])
+	X_test_noise_demo.append(X_test_noise[demo_ind])
+X_test_demo, X_test_noise_demo = np.array(X_test_demo), np.array(X_test_noise_demo)
+show_diff_samples(X_test=X_test_demo, X_test_noise=X_test_noise_demo)

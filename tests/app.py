@@ -36,13 +36,15 @@ discriminator = build_discriminator(img_shape=input_shape, labels=labels)
 discriminator.compile(loss='sparse_categorical_crossentropy', 
 						optimizer=Adam(lr=0.001),
 						metrics=['accuracy'])
-# discriminator.save_weights('./saved_model/model1119.h5')
-discriminator.load_weights("./saved_model/model1119.h5")
 
 # es_learn = EarlyStopping(monitor='val_acc', mode='max', 
 # 						verbose=1, patience=10, restore_best_weights=True)
 # discriminator.fit(x=X_train, y=y_train,
-# 				callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
+# 				callbacks=[es_learn], epochs=500, batch_size=128, validation_split=.2)
+
+# discriminator.save_weights('./saved_model/model1126.h5')
+discriminator.load_weights("./saved_model/model1119.h5")
+
 
 X, y = np.vstack((X_train, X_test)), np.hstack((y_train, y_test))
 
@@ -74,8 +76,8 @@ k = 0
 # tau_range = [10.298817, 11.444435, 11.963966, 12.210665, 11.862201, 12.417687, 11.985232, 10.597407, 11.525963, 12.678076]
 # tau_range = [25.423897, 27.173012, 26.974976, 25.435585, 24.46801, 26.40347, 25.071651, 27.639091, 26.581453, 25.11181 ]
 # tau_range = [13.922632, 14.834457, 14.890181, 16.168488, 13.913617, 15.439697, 14.788698, 14.381656, 14.680804, 13.869359]
-# tau_range = [21.651342, 24.710241, 28.045866, 30.828543, 32.101677, 31.107693, 28.460411, 27.637493, 25.652727, 28.126455]
-tau_range = [379.23633, 375.27335, 349.87256, 377.40833, 374.8883 , 375.04938, 378.13184, 377.5188 , 375.09332, 384.6132 ]
+tau_range = [21.651342, 24.710241, 28.045866, 30.828543, 32.101677, 31.107693, 28.460411, 27.637493, 25.652727, 28.126455]
+# tau_range = [379.23633, 375.27335, 349.87256, 377.40833, 374.8883 , 375.04938, 378.13184, 377.5188 , 375.09332, 384.6132 ]
 for tr, te in kf.split(X):
 	X_train, y_train = X[tr], y[tr]
 	X_test, y_test = X[te], y[te]
@@ -102,7 +104,7 @@ for tr, te in kf.split(X):
 				# optimizer=SGD(lr=0.001),
 				task='classification')
 	es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=0.001, 
-							verbose=1, patience=4, mode="min")
+							verbose=1, patience=5, mode="min")
 	es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
 							verbose=1, patience=15, restore_best_weights=True)
 

@@ -83,28 +83,18 @@ detect_tmp = shiing.combined.fit(x=X_train, y=y_train, callbacks=[es_detect1, es
 
 ## show the results
 from sklearn.utils import resample
-R_square_train_lst, R_square_test_lst, norm_lst, norm_test_lst = [], [], [], []
+R_square_train_lst, R_square_test_lst = [], []
 
 B_samples = 500
 for b in range(B_samples):
-	X_test_boot = resample(X_test, replace=True, n_samples=len(X_test), random_state=b)
-	X_train_boot = resample(X_train, replace=True, n_samples=len(X_train), random_state=b)
+	X_test_boot, y_test_boot = resample(X_test, y_test, replace=True, n_samples=len(X_test), random_state=b)
+	X_train_boot, y_train_boot = resample(X_train, y_train, replace=True, n_samples=len(X_train), random_state=b)
 	
 	X_train_noise = shiing.detector.predict(X_train_boot)
 	X_test_noise = shiing.detector.predict(X_test_boot)
 
-	if method == 'mask':
-		X_diff = np.nan_to_num( (X_train_noise - X_train_boot) / (X_train_boot+1e-8) )
-		X_diff_test = np.nan_to_num( (X_test_noise - X_test_boot) / (X_test_boot+1e-8) )
-	elif method == 'noise':
-		X_diff = X_train_noise[0,:,:,0] - X_train_boot[0,:,:,0]
-		X_diff_test = X_test_noise[0,:,:,0] - X_test_boot[0,:,:,0]
-
-	norm_tmp = np.sum(np.abs(X_diff))/len(X_diff)
-	norm_tmp_test = np.sum(np.abs(X_diff_test))/len(X_diff_test)
-
-	train_loss, train_acc = shiing.discriminator.evaluate(X_train_noise, y_train)
-	test_loss, test_acc = shiing.discriminator.evaluate(X_test_noise, y_test)
+	train_loss, train_acc = shiing.discriminator.evaluate(X_train_noise, y_train_boot)
+	test_loss, test_acc = shiing.discriminator.evaluate(X_test_noise, y_test_boot)
 	print('tau: %.2f; train_loss: %.3f; test_loss: %.3f' %(tau, train_loss, test_loss))
 	print('tau: %.2f; train_acc: %.3f; test_acc: %.3f' %(tau, train_acc, test_acc))
 
@@ -129,8 +119,8 @@ R_sqaure_dict = {key:np.append(R_sqaure_train_dict[key], R_sqaure_test_dict[key]
 
 import seaborn as sns
 sns.set()
-ax = sns.boxplot(x="R_sqaure", y='data', data=R_sqaure_dict, color='gray', whis=[2.5, 97.5], width=.6)
-ax = sns.stripplot(x="R_sqaure", y="data", data=R_sqaure_dict, color=".35", size=5, linewidth=0)
+ax = sns.boxplot(x="R_sqaure", y='data', data=R_sqaure_test_dict, color='gray', whis=[2.5, 97.5], width=.6)
+ax = sns.stripplot(x="R_sqaure", y="data", data=R_sqaure_test_dict, color=".35", size=5, linewidth=0)
 plt.show()
 
 
