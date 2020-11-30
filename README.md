@@ -1,16 +1,18 @@
-# dnn-locate
-
 <!-- ![Downloads](https://img.shields.io/pypi/dm/keras-bert.svg)
  -->
 ![Python](https://img.shields.io/badge/python-3-blue.svg)
 ![License](https://img.shields.io/pypi/l/keras-bert.svg)
+
+# dnn-locate
+
+![demo](./logos/logo_cover.png)
 
 A python library for discriminative features localization based on neural networks.
 
 This project was created by [Ben Dai](http://www.bendai.org) and [Chunlin Li]().
 
 
-![Screenshot](./logos/demo.png)
+![demo](./logos/demo.png)
 
 
 ## Installation
