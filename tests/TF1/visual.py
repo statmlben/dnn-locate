@@ -32,7 +32,7 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
-# demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
+demo_ind = np.array([np.where(y_test==7)[0][0], np.where(y_test==9)[0][17]])
 
 discriminator = build_discriminator(img_shape=input_shape, labels=labels)
 discriminator.compile(loss='sparse_categorical_crossentropy', 
@@ -41,34 +41,25 @@ discriminator.compile(loss='sparse_categorical_crossentropy',
 # discriminator.save_weights('./saved_model/model1119.h5')
 discriminator.load_weights("./saved_model/model1119.h5")
 
-# es_learn = EarlyStopping(monitor='val_acc', mode='max', 
-# 						verbose=1, patience=10, restore_best_weights=True)
-# discriminator.fit(x=X_train, y=y_train,
-# 				callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
+train_loss_base, train_acc_base = discriminator.evaluate(X_train, y_train)
+test_loss_base, test_acc_base = discriminator.evaluate(X_test, y_test)
 
-X, y = np.vstack((X_train, X_test)), np.hstack((y_train, y_test))
+print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss_base))
+print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
 
-from sklearn.model_selection import KFold
-kf = KFold(n_splits=10)
 
 # 'deep_taylor', 'gradient', 'lrp.z', 'deconvnet', 'pattern.net'
+import innvestigate
+R_square_test_lst, X_test_R, X_test_noise_R = [], [], []
 xai_dict = {'method': 'pattern.net', 'norm_max': [], 'norm_mean': [], 'R_sqaure': []}
 
-for tr, te in kf.split(X):
-	X_train, y_train = X[tr], y[tr]
-	X_test, y_test = X[te], y[te]
-	train_loss_base, train_acc_base = discriminator.evaluate(X_train, y_train)
-	test_loss_base, test_acc_base = discriminator.evaluate(X_test, y_test)
-
-	print('Baseline: train_loss: %.3f; test_loss: %.3f' %(train_loss_base, test_loss_base))
-	print('Baseline: train_acc: %.3f; test_acc: %.3f' %(train_acc_base, test_acc_base))
-
+method_name_lst = ['deep_taylor', 'gradient', 'lrp.z', 'deconvnet', 'pattern.net']
+for method_name in method_name_lst:
 	## apply analysis
-	import innvestigate
 	model = innvestigate.utils.model_wo_softmax(discriminator)
-	analyzer = innvestigate.create_analyzer(xai_dict['method'], model)
+	analyzer = innvestigate.create_analyzer(method_name, model)
 	## deep_taylor method
-	if xai_dict['method'] == 'pattern.net':
+	if method_name == 'pattern.net':
 		analyzer.fit(X_train, batch_size=64, verbose=1)
 	X_test_diff = analyzer.analyze(X_test)
 	X_test_diff /= np.max(np.abs(X_test_diff))
@@ -81,15 +72,14 @@ for tr, te in kf.split(X):
 	print('test_loss: %.3f; test_acc: %.3f' %(test_loss, test_acc))
 	R_sqaure_test = 1. - test_loss_base / test_loss
 	print('mean_norm: %.3f, max_norm: %.3f; R_sqaure_test: %.3f' %(norm_tmp.mean(), norm_tmp.max(), R_sqaure_test))
-	xai_dict['norm_max'].append(norm_tmp.max())
-	xai_dict['norm_mean'].append(norm_tmp.mean())
-	xai_dict['R_sqaure'].append(R_sqaure_test)
+	R_square_test_lst.append(R_sqaure_test)	
+	X_test_R.append(X_test[demo_ind])
+	X_test_noise_R.append(X_test_diff[demo_ind])	
+	# X_test_noise_R.append(X_test_noise[demo_ind])
 
-print('===================== performance for %s ===================' %xai_dict['method'])
-print('mean_norm: %.3f(%.3f), max_norm: %.3f(%.3f); R_sqaure_test: %.3f(%.3f)' 
-	%(np.mean(xai_dict['norm_mean']), np.std(xai_dict['norm_mean'])/np.sqrt(10), 
-		np.mean(xai_dict['norm_max']), np.std(xai_dict['norm_max'])/np.sqrt(10), 
-		np.mean(xai_dict['R_sqaure']), np.std(xai_dict['R_sqaure'])/np.sqrt(10)))
+R_square_test_lst, X_test_R, X_test_noise_R = np.array(R_square_test_lst), np.array(X_test_R), np.array(X_test_noise_R)
+show_samples(R_square_test_lst, X_test_R, X_test_noise_R, method_name=method_name_lst, threshold=[1e-2]*5, mix='diff')
+
 
 # ===================== performance for deep_taylor ===================
 # mean_norm: 6.152(0.119), max_norm: 11.698(0.228); R_sqaure_test: 0.236(0.016)

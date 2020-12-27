@@ -31,12 +31,24 @@ X_test, y_test = X_test[ind_set_test], y_test[ind_set_test]
 X_train = np.expand_dims(X_train, axis=3)
 X_test = np.expand_dims(X_test, axis=3)
 
+# X, y = np.vstack((X_train, X_test)), np.hstack((y_train, y_test))
+
+# from sklearn.model_selection import KFold
+# kf = KFold(n_splits=10)
+
+# k = 0
+# for tr, te in kf.split(X):
+# 	if k == 7:
+# 		X_train, y_train = X[tr], y[tr]
+# 		X_test, y_test = X[te], y[te]
+# 	k += 1
+
 demo_ind = np.array([np.where(y_test==7)[0][0], np.where(y_test==9)[0][17]])
+# demo_ind = np.array([np.where(y_test==7)[0][10], np.where(y_test==9)[0][31]])
 # plt.imshow(X_test[demo_ind[0]])
 # plt.show()
 # plt.imshow(X_test[demo_ind[1]])
 # plt.show()
-
 ## define models
 lam_range = [4, 6, 8, 10, 12, 14, 16, 18]
 # lam_range = [6]
@@ -49,11 +61,7 @@ for lam in lam_range:
 	discriminator.compile(loss='sparse_categorical_crossentropy', 
 							optimizer=Adam(lr=0.001),
 							metrics=['accuracy'])
-	# discriminator.load_weights("./saved_model/model1107.h5")
-	# discriminator.load_weights("./saved_model/model1119.h5")
-	# discriminator.load_weights("./saved_model/model1126.h5")
-	discriminator.load_weights("./saved_model/model1119.h5")
-	
+
 	## define framework
 	shiing = LocalGAN(input_shape=input_shape,
 					labels=labels,
@@ -77,6 +85,11 @@ for lam in lam_range:
 	print('###'*5+' '*6+'Load learner'+' '*5+'###'*5)
 	print('###'*20)
 
+	# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
+	# shiing.discriminator.save_weights("./saved_model/model1107.h5")
+	# shiing.discriminator.load_weights("./saved_model/model1107.h5")
+	shiing.discriminator.load_weights("./saved_model/model1119.h5")
+	# shiing.discriminator.load_weights("./saved_model/model1126.h5")
 	train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
 	test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 

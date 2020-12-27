@@ -4,7 +4,7 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 
-def show_diff_samples(X_test, X_test_noise, threshold=None, method='mask'):
+def show_diff_samples(X_test, X_test_noise, threshold=None, mix='mask'):
 	""" Plots generalized partial R values and its corresponding images.
 	Parameters
 	----------
@@ -16,9 +16,9 @@ def show_diff_samples(X_test, X_test_noise, threshold=None, method='mask'):
 		The noised image we want to demostrate over different R_sqaure, shape is (#R_quare, #labels, **shape of image)
 	"""
 	cols, rows = X_test.shape[0], X_test.shape[1]
-	if method == 'mask':
+	if mix == 'mask':
 		X_diff = - (X_test_noise - X_test) / (X_test+1e-9)
-	elif method == 'noise':
+	elif mix == 'noise':
 		X_diff = - (X_test_noise - X_test)
 	fig = plt.figure(constrained_layout=False)
 	spec = fig.add_gridspec(ncols=cols, nrows=rows)
@@ -45,7 +45,7 @@ def show_diff_samples(X_test, X_test_noise, threshold=None, method='mask'):
 	plt.show()
 
 
-def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mask'):
+def show_samples(R_square, X_test_R, X_test_noise_R, method_name=None, threshold=None, mix='mask'):
 	""" Plots generalized partial R values and its corresponding images.
 	Parameters
 	----------
@@ -57,10 +57,12 @@ def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mas
 		The noised image we want to demostrate over different R_sqaure, shape is (#R_quare, #labels, **shape of image)
 	"""
 	cols, rows = X_test_R.shape[0], X_test_R.shape[1]
-	if method == 'mask':
+	if mix == 'mask':
 		X_diff_R = - (X_test_noise_R - X_test_R) / (X_test_R+1e-9)
-	elif method == 'noise':
+	elif mix == 'noise':
 		X_diff_R = - (X_test_noise_R - X_test_R)
+	elif mix == 'diff':
+		X_diff_R = X_test_noise_R
 	fig = plt.figure(constrained_layout=False)
 	heights = [1]*rows
 	heights.append(.06)
@@ -77,8 +79,11 @@ def show_samples(R_square, X_test_R, X_test_noise_R, threshold=None, method='mas
 			ax = fig.add_subplot(spec[row, col])
 			im1 = ax.imshow(X_test_R[col,row], vmin=0, vmax=1, cmap='binary')
 			ax.axis('off')
-			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.8)
+			im2 = ax.imshow(X_diff_tmp, vmin=0, vmax=1, cmap='OrRd', alpha=0.9)
 			ax.axis('off')
+			if method_name is not None:
+				if row == 0:
+					ax.set_title('%s' %method_name[col])
 	x_ax = fig.add_subplot(spec[-1, :])
 	x_ax = sns.heatmap(R_square.reshape(1,cols), cmap='binary', linewidths=.00, vmin=0, vmax=1, annot=True, cbar=False)
 	x_ax.axis('off')
