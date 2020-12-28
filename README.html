@@ -1058,8 +1058,12 @@ body .markdown-body
 </style><title>README</title></head><body><article class="markdown-body"><!-- ![Downloads](https://img.shields.io/pypi/dm/keras-bert.svg)
  -->
 
-<p><img alt="Python" src="https://img.shields.io/badge/python-3-blue.svg" />
-<img alt="License" src="https://img.shields.io/pypi/l/keras-bert.svg" /></p>
+<p><img alt="Pypi" src="https://badge.fury.io/py/dnn-locate.svg" />
+<img alt="Python" src="https://img.shields.io/badge/python-3-blue.svg" />
+<img alt="License" src="https://img.shields.io/pypi/l/keras-bert.svg" />
+<img alt="Keras" src="https://img.shields.io/badge/keras-tf.keras-red.svg" />
+<img alt="Downloads" src="https://static.pepy.tech/badge/dnn-locate" />
+<img alt="MonthDownloads" src="https://pepy.tech/badge/dnn-locate/month" /></p>
 <h1 id="dnn-locate">dnn-locate<a class="headerlink" href="#dnn-locate" title="Permanent link"></a></h1>
 <p><img alt="demo" src="/home/ben/MEGA/github/dnn-locate/logos/logo_cover.png" /></p>
 <p>A python library for discriminative features localization based on neural networks.</p>
@@ -1087,7 +1091,7 @@ pip install git+https://github.com/statmlben/dnn-locate.git
 </pre></div>
 
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link"></a></h2>
-<h2 id="loc_model">loc_model<a class="headerlink" href="#loc_model" title="Permanent link"></a></h2>
+<h2 id="loc_model"><strong>loc_model</strong><a class="headerlink" href="#loc_model" title="Permanent link"></a></h2>
 <p><div class="codehilite"><pre><span class="k">class</span> <span class="nc">dnn_locate</span><span class="o">.</span><span class="n">loc_model</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">discriminator</span><span class="p">,</span> <span class="n">tau_range</span><span class="p">,</span> <span class="n">target_r_square</span><span class="p">,</span> <span class="n">r_square</span><span class="o">=</span><span class="p">[],</span> <span class="n">detector</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">combined</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">X_demo</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">X_diff_demo</span><span class="o">=</span><span class="p">[],</span> <span class="n">task</span><span class="o">=</span><span class="s">&#39;classification&#39;</span><span class="p">)</span>
 </pre></div>
 <code>class</code> for for discriminative feature detection based on deep learning models.</p>
@@ -1135,7 +1139,7 @@ pip install git+https://github.com/statmlben/dnn-locate.git
 </ul>
 <p><div class="codehilite"><pre><span class="k">def</span> <span class="nf">R_sqaure_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 </pre></div>
-    Plot solution path for the proposed method wrt tau_range</p>
+Plot solution path for the proposed method wrt tau_range</p>
 <p><div class="codehilite"><pre><span class="k">def</span> <span class="nf">path_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">plt1_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;cmap&#39;</span><span class="p">:</span> <span class="s">&#39;binary&#39;</span><span class="p">},</span> <span class="n">plt2_params</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;cmap&#39;</span><span class="p">:</span> <span class="s">&#39;OrRd&#39;</span><span class="p">,</span> <span class="s">&#39;alpha&#39;</span><span class="p">:</span><span class="mf">0.6</span><span class="p">})</span>
 </pre></div>
 Plots generalized partial R values and its corresponding images wrt tau_range.</p>

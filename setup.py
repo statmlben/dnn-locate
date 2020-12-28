@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open('README.rst') as f:
+with open('README.md') as f:
     LONG_DESCRIPTION = f.read()
 
 if __name__ == "__main__":
@@ -11,7 +11,7 @@ if __name__ == "__main__":
         author=['Ben Dai', 'Chunlin Li'],
         author_email='bdai@umn.edu, li000007@umn.edu',
         # Needed to actually package something
-        packages=['dnn-locate'],
+        packages=['dnn_locate'],
         # Needed for dependencies
         install_requires=['numpy', 'keras', 'pandas', 'tensorflow>=2.3.1', 'scipy', 'sklearn', 'matplotlib'],
         # *strongly* suggested for sharing
@@ -21,6 +21,6 @@ if __name__ == "__main__":
         description='dnn-locate is a Python module for discriminative features localization based on neural networks.',
         # cmdclass={"build_ext": build_ext},
         # We will also need a readme eventually (there will be a warning)
-        long_description_content_type='text/x-rst',
+        long_description_content_type='text/markdown',
         long_description=LONG_DESCRIPTION,
     )

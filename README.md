@@ -1,7 +1,11 @@
 <!-- ![Downloads](https://img.shields.io/pypi/dm/keras-bert.svg)
  -->
+![Pypi](https://badge.fury.io/py/dnn-locate.svg)
 ![Python](https://img.shields.io/badge/python-3-blue.svg)
 ![License](https://img.shields.io/pypi/l/keras-bert.svg)
+![Keras](https://img.shields.io/badge/keras-tf.keras-red.svg)
+![Downloads](https://static.pepy.tech/badge/dnn-locate)
+![MonthDownloads](https://pepy.tech/badge/dnn-locate/month)
 
 # dnn-locate
 
@@ -42,7 +46,7 @@ git clone https://github.com/statmlben/dnn-locate.git
 ```
 ## Documentation 
 
-## loc_model
+## **loc_model**
 
 ``` python
 class dnn_locate.loc_model(input_shape, discriminator, tau_range, target_r_square, r_square=[], detector=None, combined=None, X_demo=None, X_diff_demo=[], task='classification')
