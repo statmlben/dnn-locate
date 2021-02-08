@@ -21,17 +21,17 @@ This project was created by [Ben Dai](http://www.bendai.org) and [Chunlin Li](ht
 
 ### Dependencies
 
-Deep-Inference requires:
+dnn-locate requires:
 
 - Python
 - Numpy
 - Pandas
 - sklearn
-- sciPy
+- SciPy
 
 ### User installation
 
-Install Deep-Inference using ``pip``
+Install Deep-Locate using ``pip``
 
 ```bash
 pip install dnn-locate
@@ -44,7 +44,7 @@ You can check the latest sources with the command::
 ```bash
 git clone https://github.com/statmlben/dnn-locate.git
 ```
-## Documentation 
+## Documentation
 
 ## **loc_model**
 
@@ -102,11 +102,11 @@ Plot solution path for the proposed method wrt tau_range
 def path_plot(self, threshold=None, plt1_params={'cmap': 'binary'}, plt2_params={'cmap': 'OrRd', 'alpha':0.6})
 ```
 Plots generalized partial R values and its corresponding images wrt tau_range.
-		
+
 - Parameters:
 	- threshold : {array-like} or float
 	 threshold to truncate the small detected pixels
-	- plt1_params : {dict-like} 
+	- plt1_params : {dict-like}
 	 dict for imshow for X_demo
 	- plt2_params : {dict-like}
 	 dict for imshow for X_diff_demo
@@ -123,7 +123,7 @@ Plots data-adaptive detected region for the fitted detector.
 	 Output vector/matrix relative to X.
 	- demo_ind : {array-like} of shape (num_instance, num_labels) default=None
 	- threshold : {array-like} or float, default=None
-	 threshold to truncate the small detected pixels	
+	 threshold to truncate the small detected pixels
 
 ## Example
 
@@ -135,7 +135,7 @@ shiing = loc_model(input_shape=input_shape,
 				tau_range=tau_range,
 				target_r_square=.5,
 				task='classification')
-shiing.fit(X_train=X_train, y_train=y_train, detector=detector, 
+shiing.fit(X_train=X_train, y_train=y_train, detector=detector,
 			optimizer=SGD(lr=1.), fit_params=fit_params)
 ```
 
@@ -193,16 +193,16 @@ detector = Sequential()
 detector.add(Conv2D(32, (2,2),
 	padding="same",
 	input_shape=input_shape,
-	kernel_initializer=initializer, 
+	kernel_initializer=initializer,
 	bias_initializer=initializer))
 detector.add(Flatten())
-detector.add(Dense(128, activation='relu', 
-	kernel_initializer=initializer, 
+detector.add(Dense(128, activation='relu',
+	kernel_initializer=initializer,
 	bias_initializer=initializer))
 detector.add(Dense(128, activation='relu',
-	kernel_initializer=initializer, 
+	kernel_initializer=initializer,
 	bias_initializer=initializer))
-detector.add(Dense(np.prod(input_shape), 
+detector.add(Dense(np.prod(input_shape),
 	activation ='softmax',
 	kernel_initializer=initializer,
 	bias_initializer=initializer))
@@ -228,7 +228,7 @@ discriminator.add(Dense(labels, activation='softmax',
 	kernel_regularizer=tf.keras.regularizers.l1(0.001),
 	bias_regularizer=tf.keras.regularizers.l1(0.001),
 	bias_initializer=initializer))
-discriminator.compile(loss='sparse_categorical_crossentropy', 
+discriminator.compile(loss='sparse_categorical_crossentropy',
 						optimizer=Adam(lr=0.001),
 						metrics=['accuracy'])
 
@@ -241,17 +241,17 @@ shiing = loc_model(input_shape=input_shape,
 
 es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.382, min_lr=.0001,
 					verbose=1, patience=5, mode="min")
-es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001, 
+es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001,
 						verbose=1, patience=15, restore_best_weights=True)
-es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
+es_learn = EarlyStopping(monitor='val_accuracy', mode='max',
 						verbose=1, patience=10, restore_best_weights=True)
 
 print('###'*20)
 print('###'*5+' '*6+'Load learner'+' '*5+'###'*5)
 print('###'*20)
 
-# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, 
-#									callbacks=[es_learn], epochs=50, 
+# learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train,
+#									callbacks=[es_learn], epochs=50,
 #									batch_size=128, validation_split=.2)
 
 # shiing.discriminator.save_weights("./saved_model/model1107.h5")
@@ -267,10 +267,10 @@ print('###'*20)
 fit_params={'callbacks': [es_detect1, es_detect2],
 			'epochs': 1000, 'batch_size': 64}
 
-shiing.fit(X_train=X_train, y_train=y_train, detector=detector, 
+shiing.fit(X_train=X_train, y_train=y_train, detector=detector,
 			optimizer=SGD(lr=1.), fit_params=fit_params)
 
-## Visualize the results 
+## Visualize the results
 shiing.R_sqaure_path()
 shiing.path_plot()
 shiing.DA_plot(X=X_test, y=y_test)
