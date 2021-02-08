@@ -31,7 +31,7 @@ dnn-locate requires:
 
 ### User installation
 
-Install Deep-Locate using ``pip``
+Install dnn-locate using ``pip``
 
 ```bash
 pip install dnn-locate
