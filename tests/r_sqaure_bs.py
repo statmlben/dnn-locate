@@ -33,7 +33,7 @@ X_test = np.expand_dims(X_test, axis=3)
 # demo_ind = np.array([np.where(y_test==7)[0][2], np.where(y_test==9)[0][2]])
 ## define models
 # lam_range = [5, 6, 8, 10, 12, 14, 15, 16, 18, 20]
-tau = 20
+tau = 18
 
 detector = build_detector(img_shape=input_shape, lam=tau, type_='mask')
 
@@ -54,7 +54,7 @@ shiing = LocalGAN(input_shape=input_shape,
 es_detect1 = ReduceLROnPlateau(monitor="loss", factor=0.618, min_lr=0.0001, 
 						verbose=1, patience=4, mode="min")
 es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.00001, 
-						verbose=1, patience=15, restore_best_weights=False)
+						verbose=1, patience=10, restore_best_weights=False)
 
 es_learn = EarlyStopping(monitor='val_accuracy', mode='max', 
 						verbose=1, patience=10, restore_best_weights=True)
@@ -65,7 +65,7 @@ print('###'*20)
 
 # learn_tmp = shiing.discriminator.fit(x=X_train, y=y_train, callbacks=[es_learn], epochs=50, batch_size=128, validation_split=.2)
 # shiing.discriminator.save_weights("model1107.h5")
-shiing.discriminator.load_weights("model1107.h5")
+shiing.discriminator.load_weights("saved_model/model1107.h5")
 train_loss_base, train_acc_base = shiing.discriminator.evaluate(X_train, y_train)
 test_loss_base, test_acc_base = shiing.discriminator.evaluate(X_test, y_test)
 
@@ -100,12 +100,10 @@ for b in range(B_samples):
 
 	shiing.R_square_train = 1. - train_loss_base / train_loss
 	shiing.R_sqaure_test = 1. - test_loss_base / test_loss
-	print('tau: %.2f; diff_norm: %.3f; R_square_train: %.3f; R_sqaure_test: %.3f' 
-		%(tau, norm_tmp, shiing.R_square_train, shiing.R_sqaure_test))
+	print('tau: %.2f; R_square_train: %.3f; R_sqaure_test: %.3f' 
+		%(tau, shiing.R_square_train, shiing.R_sqaure_test))
 	R_square_train_lst.append(shiing.R_square_train)
 	R_square_test_lst.append(shiing.R_sqaure_test)
-	norm_lst.append(norm_tmp)
-	norm_test_lst.append(norm_tmp_test)
 
 print('R_square_train: (2.5%% quantile: %.4f; 97.5%% quantile: %.4f)' 
 	%(np.quantile(R_square_train_lst, q=.025), np.quantile(R_square_train_lst, q=.975)))
