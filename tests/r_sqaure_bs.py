@@ -117,8 +117,8 @@ R_sqaure_dict = {key:np.append(R_sqaure_train_dict[key], R_sqaure_test_dict[key]
 
 import seaborn as sns
 sns.set()
-ax = sns.boxplot(x="R_sqaure", y='data', data=R_sqaure_test_dict, color='gray', whis=[2.5, 97.5], width=.6)
-ax = sns.stripplot(x="R_sqaure", y="data", data=R_sqaure_test_dict, color=".35", size=5, linewidth=0)
+ax = sns.boxplot(x="data", y='R_sqaure', data=R_sqaure_test_dict, color='gray', whis=[2.5, 97.5], width=.6)
+ax = sns.stripplot(x="data", y="R_sqaure", data=R_sqaure_test_dict, color=".35", size=5, linewidth=0)
 plt.show()
 
 
