@@ -9,6 +9,8 @@
 
 # dnn-locate
 
+(This library is still under construction, more new functions coming soon.)
+
 ![demo](./logos/logo_cover.png)
 
 A python library for discriminative features localization based on neural networks.
