@@ -1,13 +1,13 @@
-from keras.datasets import mnist
-from keras.optimizers import Adam, SGD
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 # from models.cnn_models import build_detector, build_discriminator
 from models.cnn_models_v2 import build_detector, build_discriminator
 
 from dnn_locate import LocalGAN
 import matplotlib.pyplot as plt
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from EDA import show_samples, R_sqaure_path, show_diff_samples
 import tensorflow as tf
 

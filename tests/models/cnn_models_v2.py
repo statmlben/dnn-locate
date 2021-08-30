@@ -3,12 +3,12 @@ import tensorflow as tf
 from keras.datasets import mnist
 # from tensorflow.python.keras import backend
 from tensorflow.keras import backend
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
-from keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D, GlobalAveragePooling2D
-from keras.layers import UpSampling2D, Conv2D
-from keras.models import Sequential, Model
-from keras.optimizers import Adam, SGD
-from keras import initializers
+from tensorflow.keras.layers import Input, Dense, Reshape, Flatten, Dropout, Add, Multiply, Conv2DTranspose
+from tensorflow.keras.layers import BatchNormalization, Activation, ZeroPadding2D, MaxPooling2D, GlobalAveragePooling2D
+from tensorflow.keras.layers import UpSampling2D, Conv2D
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras import initializers
 import numpy as np
 
 initializer = initializers.glorot_uniform(seed=0)
