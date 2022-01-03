@@ -1,12 +1,14 @@
 <!-- ![Downloads](https://img.shields.io/pypi/dm/keras-bert.svg)
  -->
+
+<a href="https://bendai.org"><img src="https://img.shields.io/badge/Powered%20by-cuhk%40dAI-purple.svg"/></a>
+<a href="https://bendai.org"><img src="https://img.shields.io/badge/Powered%20by-umn-red.svg"/></a>
 ![Pypi](https://badge.fury.io/py/dnn-locate.svg)
 ![Python](https://img.shields.io/badge/python-3-blue.svg)
 ![License](https://img.shields.io/pypi/l/dnn-locate.svg)
 ![Keras](https://img.shields.io/badge/keras-tf.keras-red.svg)
 ![Downloads](https://static.pepy.tech/badge/dnn-locate)
 ![MonthDownloads](https://pepy.tech/badge/dnn-locate/month)
-<a href="https://bendai.org"><img src="https://img.shields.io/badge/Powered%20by-cuhk%40dAI-purple.svg"/></a>
 
 # dnn-locate
 
