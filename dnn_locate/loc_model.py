@@ -86,7 +86,7 @@ class loc_model(object):
         self.detector = Model(X, X_noise)
 
 
-    def build_combined(self, optimizer=SGD(lr=.0005)):
+    def build_combined(self, optimizer=SGD(learning_rate=.0005)):
         """
         Building a detector and a combined model for the proposed framework
 
@@ -174,9 +174,9 @@ class loc_model(object):
                 self.X_demo = X_test[demo_ind]
         ## determine target_r_square
         if self.target_r_square == 'auto':
-            loss_base, acc_base = self.discriminator.evaluate(X_train, y_train)
+            loss_base, acc_base = self.discriminator.evaluate(X_train, y_train)[:2]
             
-            loss_random, acc_random = self.discriminator.evaluate(X_train, np.random.permutation(y_train))
+            loss_random, acc_random = self.discriminator.evaluate(X_train, np.random.permutation(y_train))[:2]
             self.target_r_square = 1. - loss_base / loss_random
 
         ## fitting the models
