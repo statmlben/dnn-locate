@@ -1,1 +1,0 @@
-{"detector_tau_5_r2_99": {"_type": "image-file", "path": "media/images/detector_tau_5_r2_99_19_12ff0fc25dd1aa8ad234.png", "sha256": "12ff0fc25dd1aa8ad234d3357f6ff0490798abc09c02a30e3b53da4f078f2c03", "size": 64522, "format": "png", "width": 1280, "height": 640}, "_runtime": 35, "_timestamp": 1642334942, "_step": 19, "_wandb": {"runtime": 35}}

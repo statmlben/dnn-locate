@@ -1,1 +1,0 @@
-{"detector_r2_75": {"_type": "image-file", "path": "media/images/detector_r2_75_29_3678ee664b634ef6f8bf.png", "sha256": "3678ee664b634ef6f8bfe64fa87c9af7285fdaa5ff7e53131a8c8e3e4f075508", "size": 60782, "format": "png", "width": 1280, "height": 640}, "_runtime": 34, "_timestamp": 1642419721, "_step": 29, "_wandb": {"runtime": 34}}
