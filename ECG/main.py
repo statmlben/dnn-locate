@@ -37,9 +37,7 @@ X = X.reshape(-1, 187, 1)
 input_shape = X.shape[1:]
 
 ## Model
-
 from BBox_detect import loc_model
-
 ## define the backend detector before TRELU activation
 
 detector_backend = tf.keras.Sequential(
@@ -71,7 +69,8 @@ es_detect2 = EarlyStopping(monitor='loss', mode='min', min_delta=.0001,
 fit_params={'callbacks': [es_detect1, es_detect2],
             'epochs': 200, 'batch_size': 128}
 
-tau_range = np.array([.0117])*np.prod(input_shape)
+# tau_range = np.array([.015])*np.prod(input_shape)
+tau_range = np.array([.18])*np.prod(input_shape)
 
 ## define framework
 cue = loc_model(input_shape=input_shape,
@@ -79,6 +78,7 @@ cue = loc_model(input_shape=input_shape,
                 discriminator=discriminator,
                 target_r_square='auto',
                 r_metric='acc',
+                # r_metric='loss',
                 tau_range=tau_range)
 
 cue.fit(X_train=X, y_train=y,
@@ -86,7 +86,7 @@ cue.fit(X_train=X, y_train=y,
 
 r2_model = cue.R_square(X, y)
 
-cue.detector.save(f'detector_r2_%d'%(r2_model*100))
+# cue.detector.save(f'detector_r2_%d'%(r2_model*100))
 
 detector = cue.detector
 import numpy as np
@@ -95,9 +95,9 @@ import seaborn as sns
 sns.set_theme()
 
 class_dict = {0: 'N', 1: 'S', 2: 'V', 3: 'F', 4: 'Q'}
-n_demo = 2
+n_demo = 3
 
-for k in [1,2]:
+for k in [0,1,2,3,4]:
     demo_ind = np.array([np.random.choice(np.where(y[:,k] == 1)[0]) for i in range(n_demo)])
     X_demo = X[demo_ind]
     X_demo_detect = detector.predict(X_demo)

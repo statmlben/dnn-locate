@@ -43,7 +43,7 @@ class loc_model(object):
      Records for R_square values based on a dataset.
 
     """
-    def __init__(self, input_shape, discriminator, detector_backend=None, tau_range = np.arange(1,10), target_r_square='auto'):
+    def __init__(self, input_shape, discriminator, detector_backend=None, tau_range = np.arange(1,10), target_r_square='auto', r_metric='acc'):
         # self.labels = labels
         self.input_shape = input_shape
         self.tau_range = tau_range
@@ -56,6 +56,7 @@ class loc_model(object):
         self.X_demo = None
         self.loss = tf.keras.losses.get(self.discriminator.loss)
         self.X_diff_demo = []
+        self.r_metric=r_metric
 
         # labels: integer, (number of labels for classification, dimension of outcome for regression)
         #  For example, in MNIST dataset ``labels = 10``.
@@ -120,7 +121,7 @@ class loc_model(object):
 
         self.combined.compile(loss=neg_loss, optimizer=optimizer)
 
-    def fit(self, X_train, y_train, fit_params, demo_ind=None, X_test=None, y_test=None, optimizer=SGD(lr=.0005)):
+    def fit(self, X_train, y_train, fit_params, datagen=None, demo_ind=None, X_test=None, y_test=None, optimizer=SGD(lr=.0005)):
         """
         Fitting the detector based on a given dataset.
 
@@ -177,14 +178,20 @@ class loc_model(object):
             loss_base, acc_base = self.discriminator.evaluate(X_train, y_train)[:2]
             
             loss_random, acc_random = self.discriminator.evaluate(X_train, np.random.permutation(y_train))[:2]
-            self.target_r_square = 1. - loss_base / loss_random
+            if self.r_metric=='acc':
+                self.target_r_square = 1. - (1. - acc_base) / (1. - acc_random)
+            else:
+                self.target_r_square = 1. - loss_base / loss_random
 
         ## fitting the models
         reach_target = 0
         for tau_tmp in self.tau_range:
             self.build_detector(tau=tau_tmp)
             self.build_combined(optimizer=optimizer)
-            self.combined.fit(X_train, y_train, **fit_params)
+            if datagen == None:
+                self.combined.fit(X_train, y_train, **fit_params)
+            else:
+                self.combined.fit(datagen.flow(X_train, y_train, batch_size = fit_params['batch_size']), **fit_params)
             if (X_test is None) or (y_test is None):
                 r_square_tmp = self.R_square(X_train, y_train)
             else:
@@ -250,7 +257,10 @@ class loc_model(object):
         loss_base, acc_base = self.discriminator.evaluate(X, y)
         X_noise = self.detector.predict(X)
         loss_noise, acc_noise = self.discriminator.evaluate(X_noise, y)
-        R_square = 1. - loss_base / loss_noise
+        if self.r_metric == 'acc':
+            R_square = 1. - (1. - acc_base) / (1. - acc_noise)
+        else:
+            R_square = 1. - loss_base / loss_noise
         return R_square
 
     def R_sqaure_path(self):
