@@ -14,12 +14,25 @@
 </p>
 
 **dnn-locate** is a Python module for discriminative features localization given a fitted discriminator model, including **neural networks**. **dnn-locate** has the following key features:
-- Sparse discriminative features. The discriminative features provided by **dnn-locate** is sparse.
-- Statistically guaranteed interpretation in R-square (R2). **dnn-locate** is able to *effectively* localize the discriminative features with a target R2 of prediction.
+1. Adaptive discriminative features. For different instances, **dnn-locate** is able to provide **adaptive** discriminative features.
+2. Sparse discriminative features. The discriminative features provided by **dnn-locate** is sparse.
+3. Statistically guaranteed interpretation in R-square (R2). **dnn-locate** is able to *effectively* localize the discriminative features with a target R2 of prediction.
 
 <p float="left">
   <img src="./logos/DFD.png" width="800" />
 </p>
+
+## **Magic** activation function
+We achieve the (1)-(3) by using the **Magic** activation: `tanh`+`relu`+`softmax`
+```python
+from keras import backend as K
+
+def tanh_relu(x, tau, axis_=(1,2)):
+  z = tau*K.softmax(x, axis=axis_)
+  z = backend.tanh(backend.relu(z))
+  return z
+```
+`tanh_relu(x)` satisfies that: (i) `tanh_relu(x) <= 1`; (ii) `Σ tanh_relu(x) <= tau`, that is, each element if controlled by 1, and the sum of all elements is controlled by `tau`.
 
 ## Installation
 
@@ -33,7 +46,7 @@ pip install -r requirements.txt
 
 ### User installation
 
-Install dnn-locate using ``pip``
+Install `dnn-locate` using ``pip``
 
 ```bash
 pip install dnn-locate
@@ -70,7 +83,7 @@ Of note, as the $R^2$ increases from 10\% to 88\%, the highlighted color bar is 
 
 ## Notebook
 
-- [nb_ECG](./notebook/detect_ECG.ipynb): Implement in ECG dataset
+- [nb_ECG](./notebook/nb_ECG.ipynb): Implement in ECG dataset
 - [nb_MNIST](./notebook/detect_MNIST.ipynb): Implement in MNIST dataset
 
 ## Replication
