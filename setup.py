@@ -15,7 +15,7 @@ if __name__ == "__main__":
         # Needed for dependencies
         install_requires=['numpy', 'keras', 'pandas', 'tensorflow>=2.3.1', 'scipy', 'sklearn', 'matplotlib'],
         # *strongly* suggested for sharing
-        version='0.1',
+        version='0.2',
         # The license can be anything you like
         license='MIT',
         description='dnn-locate is a Python module for discriminative features localization based on neural networks.',

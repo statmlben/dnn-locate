@@ -43,7 +43,7 @@ class loc_model(object):
      Records for R_square values based on a dataset.
 
     """
-    def __init__(self, input_shape, discriminator, detector_backend=None, tau_range = np.arange(1,10), target_r_square='auto', r_metric='acc'):
+    def __init__(self, input_shape, discriminator, detector_backend=None, tau_range = np.arange(1,10), target_r_square='auto', r_metric='acc', activation='tanh+relu'):
         # self.labels = labels
         self.input_shape = input_shape
         self.tau_range = tau_range
@@ -80,7 +80,10 @@ class loc_model(object):
         noise = tf.keras.layers.BatchNormalization()(noise)
         noise = tf.keras.layers.Softmax(axis=(1,2))(noise)
         noise = tau*noise
-        noise = backend.relu(noise, max_value=max_value)
+        if self.activation == 'TReLU':
+            noise = backend.relu(noise, max_value=max_value)
+        elif self.activation == 'tanh+relu':
+            noise = backend.tanh(2.*backend.relu(noise))
         # noise = backend.tanh(noise)
         X_mask = Multiply()([noise, X])
         X_noise = Add()([X, -X_mask])
