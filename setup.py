@@ -8,8 +8,8 @@ if __name__ == "__main__":
         # Needed to silence warnings (and to be a worthwhile package)
         name='dnn-locate',
         url='https://github.com/statmlben/dnn-locate',
-        author=['Ben Dai', 'Chunlin Li'],
-        author_email='bdai@umn.edu, li000007@umn.edu',
+        author=['Ben Dai'],
+        author_email='bendai@cuhk.edu.hk',
         # Needed to actually package something
         packages=['dnn_locate'],
         # Needed for dependencies
