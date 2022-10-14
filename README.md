@@ -10,7 +10,7 @@
 # 🎯 **dnn-locate**: Data-adaptive discriminative feature localization with *statistically guaranteed interpretation*
 
 <p float="left">
-  <img src="./logos/logo_cover.png" width="700" />
+  <img src="./logos/logo_cover.png" width="800" />
 </p>
 
 **dnn-locate** is a Python module for discriminative features localization given a fitted discriminator model, including **neural networks**. **dnn-locate** has the following key features:
@@ -18,7 +18,7 @@
 - Statistically guaranteed interpretation in R-square (R2). **dnn-locate** is able to *effectively* localize the discriminative features with a target R2 of prediction.
 
 <p float="left">
-  <img src="./logos/DFD.png" width="700" />
+  <img src="./logos/DFD.png" width="800" />
 </p>
 
 ## Installation
@@ -44,15 +44,15 @@ pip install git+https://github.com/statmlben/dnn-locate.git
 - The 'x-axis' is for different R2 explained by the detected features. From left to right, **R2** = [50%, 60%, 70%, 80%].
 - The y-axis is for different instances, each row is for a one instance. The corresponding label is included in the title of each subfigure.
 <p float="left">
-  <img src="./result/729.png" width="180" />
-  <img src="./result/731.png" width="180" />
-  <img src="./result/732.png" width="180" />
-  <img src="./result/733.png" width="180" />
+  <img src="./result/729.png" width="183" />
+  <img src="./result/731.png" width="183" />
+  <img src="./result/732.png" width="183" />
+  <img src="./result/733.png" width="183" />
   
-  <img src="./result/657.png" width="180" />
-  <img src="./result/659.png" width="180" />
-  <img src="./result/660.png" width="180" />
-  <img src="./result/661.png" width="180" />
+  <img src="./result/657.png" width="183" />
+  <img src="./result/659.png" width="183" />
+  <img src="./result/660.png" width="183" />
+  <img src="./result/661.png" width="183" />
 </p>
 
 > *See full ECG localization report* [here](https://wandb.ai/bdai/ECG-DF-detection/reports/ECG-DF-localization--VmlldzoxNDQ5NTgz?accessToken=j53bazfl5c9mi2ztuwzukzgb801b2elb4852jynqu0kry0tjpd6x4vkqahjwh1cq).
