@@ -52,8 +52,8 @@ You can find more information for **dnn-locate**:
 - Open Source: `MIT license <https://opensource.org/licenses/MIT>`_
 .. - Paper: `arXiv:2103.04985 <https://arxiv.org/abs/2103.04985>`_
 
-**TRUST** (**T**anh **R**el**U** Sof**T**max) activation function 
------------------------------------------------------------------
+**TRUST** (Tanh RelU SofTmax) activation function 
+-------------------------------------------------
 
 We achieve the (1)-(3) by using the **Magic** activation: `tanh` + `relu` + `softmax`
 

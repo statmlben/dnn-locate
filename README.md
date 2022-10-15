@@ -33,7 +33,7 @@ You can find more information for **dnn-locate**:
 We achieve the (1)-(3) by using the **Magic** activation: `tanh`+`relu`+`softmax`, namely **TRUST**,
 
 ```python
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 def trust(x, tau, axis_=(1,2)):
   z = tau*K.softmax(x, axis=axis_)
