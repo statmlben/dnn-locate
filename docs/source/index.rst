@@ -52,8 +52,8 @@ You can find more information for **dnn-locate**:
 - Open Source: `MIT license <https://opensource.org/licenses/MIT>`_
 .. - Paper: `arXiv:2103.04985 <https://arxiv.org/abs/2103.04985>`_
 
-**Magic** activation function
------------------------------
+**TRUST** (**T**anh **R**el**U** Sof**T**max) activation function 
+-----------------------------------------------------------------
 
 We achieve the (1)-(3) by using the **Magic** activation: `tanh` + `relu` + `softmax`
 
@@ -61,12 +61,12 @@ We achieve the (1)-(3) by using the **Magic** activation: `tanh` + `relu` + `sof
 
    from tensorflow.keras import backend as K
 
-   def tanh_relu(x, tau, axis_=(1,2)):
+   def trust(x, tau, axis_=(1,2)):
       z = tau*K.softmax(x, axis=axis_)
       z = backend.tanh(backend.relu(z))
       return z
 
-`tanh_relu(x)` satisfies that: (i) `tanh_relu(x) <= 1`; (ii) `Σ tanh_relu(x) <= tau`, that is, each element if controlled by 1, and the sum of all elements is controlled by `tau`.
+`trust(x)` satisfies that: (i) `trust(x) <= 1`; (ii) `Σ trust(x) <= tau`, that is, each element if controlled by 1, and the sum of all elements is controlled by `tau`.
 
 
 Reference
