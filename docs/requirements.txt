@@ -6,7 +6,7 @@ seaborn>=0.11.0
 setuptools>=59.5.0
 tensorflow>=2.8.0
 tensorflow_addons>=0.17.0
-scikit-learn>=1.1.0
+scikit-learn>=1.0.0
 Sphinx>=4.2.1
 sphinx_rtd_theme
 hachibee_sphinx_theme
