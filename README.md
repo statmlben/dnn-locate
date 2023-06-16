@@ -29,18 +29,18 @@ You can find more information for **dnn-locate**:
 - PyPi: [https://pypi.org/project/dnn-locate/](https://pypi.org/project/dnn-locate/)
 - Documentation: [https://dnn-locate.readthedocs.io/en/latest/](https://dnn-locate.readthedocs.io/en/latest/)
 
-## **TRUST** (**T**anh **R**el**U** Sof**T**max) activation function 
-We achieve the (1)-(3) by using the **Magic** activation: `tanh`+`relu`+`softmax`, namely **TRUST**,
+## **TanSoft** (Tanh Softmax) activation function 
+We achieve the (1)-(3) by using the **Magic** activation: `tanh`+`softmax`, namely **TanSoft**,
 
 ```python
 from tensorflow.keras import backend as K
 
-def trust(x, tau, axis_=(1,2)):
+def tansoft(x, tau, axis_=(1,2)):
   z = tau*K.softmax(x, axis=axis_)
   z = backend.tanh(backend.relu(z))
   return z
 ```
-`trust(x)` satisfies that: (i) `trust(x) <= 1`; (ii) `Σ trust(x) <= tau`, that is, each element if controlled by 1, and the sum of all elements is controlled by `tau`.
+`tansoft(x)` satisfies that: (i) `tansoft(x) <= 1`; (ii) `Σ tansoft(x) <= tau`, that is, each element if controlled by 1, and the sum of all elements is controlled by `tau`.
 
 ## Installation
 
