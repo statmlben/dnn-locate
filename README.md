@@ -22,7 +22,6 @@
   <img src="./logos/DFD.png" width="800" />
 </p>
 
-
 You can find more information for **dnn-locate**:
 
 - GitHub repo: [https://github.com/statmlben/dnn-inference](https://github.com/statmlben/dnn-locate)
